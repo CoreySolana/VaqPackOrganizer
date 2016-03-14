@@ -267,8 +267,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         borderPane.setLeft(monthlyHbox);
          });
         
-        
-        
     String courseName = "Science";
     String coursePrefix = "3345";
     String courseNumber = "03I";
@@ -288,27 +286,48 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     String emailAddress= "coreysolana@gmail.com";
     String phoneNumber= "956-243-0434";
     int privLvl= 0;
-    
+    Professor myProf = new Professor("Emmit","Smith","Brown","emittbrown@gmail.com","9565640987","JHSAJDASD","ASKJDKASD","AKSJDASHD");
     ArrayList<Course> courseList = new ArrayList<Course>();
     ArrayList<Student> studentsRegistered = new ArrayList<Student>();
     ArrayList<Appointment> appointmentList = new ArrayList<Appointment>();
     
- //Create courses and students
+ //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
+    //These set how many courses and students we are creatig to play around with
     int courseCount = 8;
+    int studentCount = 4;
+    //Declaring a myStudent and myCourse object
     Student myStudent;
-for (int i = 0;i<courseCount;i++)
+    Course myCourse;
+    
+    //This for loop creates 8 course objects
+    for (int i = 0;i<courseCount;i++)
     {
-        Course myCourse = new Course(courseName + " " + i ,coursePrefix,courseNumber,classRoom,startTime,endTime,courseDesc,startIndex,endIndex,studentsRegistered);   
-        courses.add(i, myCourse);
+        //Each time the for loop executes it initializes a new Course object
+        myCourse = new Course(courseName + " " + i ,coursePrefix,courseNumber,classRoom,startTime,endTime,courseDesc,startIndex,endIndex,myProf,studentsRegistered);   
+        //Add the course to the courses ArrayList
+        courses.add(myCourse);
     }
+//This initializes a new student
+ for (int i = 0;i<courseCount;i++)
+ {
+     myStudent = new Student(i + "" + firstName,middleName,LastName,passWord,userName,studentId,emailAddress,phoneNumber, privLvl,courseList,appointmentList);    
+     students.add(myStudent);
+ }
+ 
+ //Adds course 2 and 3 to student 1
+ students.get(0).getCourseList().add(courses.get(1));
+ students.get(0).getCourseList().add(courses.get(2));
+ 
+ 
+ //Add student 0 to courses registered students
+ courses.get(1).getStudentsRegistered().add(students.get(0));
+ //courses.get(2).getStudentsRegistered().add(students.get(0));
+ int x = courses.get(1).getStudentsRegistered().size();
+System.out.print(x);
+for (int i = 0;i<courses.get(1).getStudentsRegistered().size();i++)
+        System .out.print(courses.get(1).getStudentsRegistered().get(i).getFirstName() + " " + " \n");
 
-myStudent = new Student(firstName,middleName,LastName,passWord,userName,studentId,emailAddress,phoneNumber, privLvl,courseList,appointmentList);    
-addCoursetoStudent(courses.get(0),myStudent);
-registerStudentInCourses();
-
-for (int i = 0;i<courses.size();i++)
-        System.out.print(courses.get(i).getCourseName() + " " + " \n");
-for (int i = 0;i<students.size();i++)
+ for (int i = 0;i<students.get(0).getCourseList().size();i++)
         System.out.print(students.get(0).getCourseList().get(i).getCourseName() + " " + " \n");
 //adding junk for testting git
 
@@ -372,27 +391,27 @@ public void addTimeToGrid(Object timeIncrement)
         
         }
 grid.setGridLinesVisible(true);      
-    
-}
+    }
 
 public void addCoursetoStudent(Course myCourse,Student myStudent)
 {
-    //Check all of Students
+    //If blank add the user
+    if (students.size() == 0)
+    {
+    students.add(myStudent);
+    }
+    //For all of students
 for(int i = 0;i<students.size();i++)
  {
-     //For a for a student = to myStudent
-if (students.get(i).getCourseList().equals(myStudent))
+     //Search for a student = to myStudent
+if (students.get(i).equals(myStudent))
     {
-        //Add myCourse to student
+       System.out.print("I found a student = to the student");
+        //Add myCourse to student. The student now has added a class to his myCourse.courseList 
      students.get(i).getCourseList().add(myCourse);
     }
           //If Student doesnt exist, add to students and recursivly call addCoursetoStudent
-else {
-  System.out.print("this was exxecuted");
-  students.add(myStudent);
-  addCoursetoStudent(myCourse,myStudent);
-  
-     }
+
 }
 }
 

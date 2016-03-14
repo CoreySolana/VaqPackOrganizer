@@ -22,7 +22,7 @@ public class Course {
     private String courseDesc;
     private String startIndex;
     private String endIndex;
-    
+    private Professor prof;
     private ArrayList<Student> studentsRegistered;
 
     public String getCourseName() {
@@ -105,7 +105,7 @@ public class Course {
         this.studentsRegistered = studentsRegistered;
     }
 
-    public Course(String courseName, String coursePrefix, String courseNumber, String classRoom, String startTime, String endTime, String courseDesc, String startIndex, String endIndex, ArrayList<Student> studentsRegistered) {
+    public Course(String courseName, String coursePrefix, String courseNumber, String classRoom, String startTime, String endTime, String courseDesc, String startIndex, String endIndex, Professor prof, ArrayList<Student> studentsRegistered) {
         this.courseName = courseName;
         this.coursePrefix = coursePrefix;
         this.courseNumber = courseNumber;
@@ -115,9 +115,11 @@ public class Course {
         this.courseDesc = courseDesc;
         this.startIndex = startIndex;
         this.endIndex = endIndex;
+        this.prof = prof;
         this.studentsRegistered = studentsRegistered;
     }
 
+   
    
             
 public ArrayList<Course> getCoursesForStudent(ArrayList<Student> studentsRegistered,Student thisStudent)
@@ -138,7 +140,45 @@ public ArrayList<Course> getCoursesForStudent(ArrayList<Student> studentsRegiste
             
         }    
     
+/* Will be the button for opening the syllabus
+  button.setOnAction(new EventHandler<ActionEvent>() {
+   @Override
+   public void handle(ActionEvent arg0) {
+    // TODO Auto-generated method stub
+    File pdfFile = new File("C:\\hai\\123.csv");
+    if (pdfFile.exists())
+    {
+     if (Desktop.isDesktopSupported())
+     {
+      try
+      {
+       Desktop.getDesktop().open(pdfFile);
+      }
+      catch (IOException e)
+      {
+      
+       e.printStackTrace();
+      }
+     }
+     else
+      {
+       System.out.println("Awt Desktop is not supported!");
+      }
+    }
     
+    else
+    {
+     System.out.println("File is not exists!");
+    }
+  
+   }
+  });
+  
+ }
+}
+
+
+*/    
     
     
 }
