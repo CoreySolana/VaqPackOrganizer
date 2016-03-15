@@ -81,7 +81,9 @@ public class VaqPackOrganizer extends Application {
         Label weeklyScheduleBttnTxt = new Label ("Weekly Schedule");
         Label monthlyScheduleBttnTxt = new Label ("Monthly Schedule");
         Label schoolInfoBttnTxt = new Label ("School Information");
-        
+        Label userManagerTxt = new Label ("User Management");
+        ToggleButton userManagerBttn = new ToggleButton(userManagerTxt.getText(), new ImageView(imageDecline));
+        userManagerBttn.setContentDisplay(ContentDisplay.TOP);
         ToggleButton weeklyScheduleBttn = new ToggleButton(weeklyScheduleBttnTxt.getText(), new ImageView(imageDecline));
         weeklyScheduleBttn.setContentDisplay(ContentDisplay.TOP);
         ToggleButton monthlyScheduleBttn = new ToggleButton(monthlyScheduleBttnTxt.getText(),new ImageView(imageDecline));
@@ -89,14 +91,18 @@ public class VaqPackOrganizer extends Application {
         ToggleButton schoolInfoBttn = new ToggleButton(schoolInfoBttnTxt.getText(),new ImageView(imageDecline));
         schoolInfoBttn.setContentDisplay(ContentDisplay.TOP);
         ToggleGroup toolBarGroup = new ToggleGroup();   
-        
-        
         weeklyScheduleBttn.setToggleGroup(toolBarGroup);
         monthlyScheduleBttn.setToggleGroup(toolBarGroup);
         schoolInfoBttn.setToggleGroup(toolBarGroup);
+        userManagerBttn.setToggleGroup(toolBarGroup);
+        
+        toolBar = new ToolBar(weeklyScheduleBttn,new Separator(),monthlyScheduleBttn,new Separator(),schoolInfoBttn,new Separator(),userManagerBttn);
+        
+        toolBar.boundsInParentProperty();
+        toolBar.setBorder(Border.EMPTY);
+        toolBar.setBackground(Background.EMPTY);
         
         
-        toolBar = new ToolBar(weeklyScheduleBttn,new Separator(),monthlyScheduleBttn,new Separator(),schoolInfoBttn,new Separator());
         
         borderPane.setMinSize(0,0);
        borderPane.setStyle("-fx-border-color: black;");
@@ -138,26 +144,26 @@ public class VaqPackOrganizer extends Application {
         toolBar.getItems().get(4).setScaleY(1);
         });
         }
-    //Binding font size to a font size tracker
+    //Bindings
         fontTracking = new SimpleObjectProperty<Font>(Font.font(8));
         weeklyScheduleBttn.fontProperty().bind(fontTracking);
-        
         schoolInfoBttn.fontProperty().bind(fontTracking);   
         monthlyScheduleBttn.fontProperty().bind(fontTracking);
-        toolBar.setMinSize(0, 0);        
-        
+        userManagerBttn.fontProperty().bind(fontTracking);
         //Binding the toolbar size to the border pane
+        toolBar.setMinSize(0, 0);        
         toolBar.prefHeightProperty().bind(borderPane.heightProperty().divide(6));
         toolBar.prefWidthProperty().bind(borderPane.widthProperty().divide(3));
-
+        //Toolbar button widths
         weeklyScheduleBttn.prefWidthProperty().bind(toolBar.widthProperty().divide(5));
-        weeklyScheduleBttn.prefHeightProperty().bind(toolBar.heightProperty());
-        //Bind the Button widths together
         monthlyScheduleBttn.prefWidthProperty().bind(toolBar.widthProperty().divide(5));
         schoolInfoBttn.prefWidthProperty().bind(toolBar.widthProperty().divide(5));
+        userManagerBttn.prefWidthProperty().bind(toolBar.widthProperty().divide(5));
+       //Toolbar button heigths
+        weeklyScheduleBttn.prefHeightProperty().bind(toolBar.heightProperty());
         monthlyScheduleBttn.prefHeightProperty().bind(toolBar.heightProperty());
         schoolInfoBttn.prefHeightProperty().bind(toolBar.heightProperty());
-        
+        userManagerBttn.prefHeightProperty().bind(toolBar.heightProperty());
         //Bind the borderPane to the scene
         borderPane.prefWidthProperty().bind(scene.widthProperty());
         
@@ -184,39 +190,39 @@ public class VaqPackOrganizer extends Application {
         //Setup a GridPane
         
         grid.setMinSize(0,0);
-        //borderPane.minHeight(0);
+        borderPane.minHeight(0);
         grid.setMaxSize(800, 800);
         
         grid.prefHeightProperty().bind(borderPane.heightProperty().divide(4));
         grid.prefWidthProperty().bind(borderPane.widthProperty().divide(3));
 
-    //Setup times
-        
-        
-Object object = 0;
-Object object1 = 15;
-Object object2 = 30;
+ //Setup times
+ Object object = 0;
+ Object object1 = 15;
+ Object object2 = 30;
+ //casting object to int
  int hourly = (int) object;
-int quarters = (int) object1;
-int biHours = (int) object2;
+ int quarters = (int) object1;
+ int biHours = (int) object2;
+ //Create toggleButtons for toolBar
  ToggleButton tb1 = new ToggleButton("Bi-Hours");
  tb1.fontProperty().bind(fontTracking);
- 
  tb1.setUserData(biHours);
  ToggleButton tb2 = new ToggleButton("Hours");
  tb2.setUserData(hourly);
  tb2.fontProperty().bind(fontTracking);
  ToggleButton tb3 = new ToggleButton("Quarters");
-tb3.fontProperty().bind(fontTracking);
+ tb3.fontProperty().bind(fontTracking);
  tb3.setUserData(quarters);
  tb1.setAlignment(Pos.CENTER);
-  tb2.setAlignment(Pos.CENTER);
-   tb3.setAlignment(Pos.CENTER);
+ tb2.setAlignment(Pos.CENTER);
+ tb3.setAlignment(Pos.CENTER);
  ToggleGroup group = new ToggleGroup();
  tb1.setToggleGroup(group);
  tb2.setToggleGroup(group);
  tb3.setToggleGroup(group);   
  
+ //Bind button to Toolbar
  ToolBar weeklyViewToolBar = new ToolBar(new Separator(),new Separator(),tb1,new Separator(),tb2,new Separator(),tb3,new Separator(),new Separator());
  tb1.prefHeightProperty().bind(weeklyViewToolBar.heightProperty().divide(4));
  tb1.prefWidthProperty().bind(weeklyViewToolBar.widthProperty().divide(4));
@@ -226,12 +232,12 @@ tb3.fontProperty().bind(fontTracking);
  tb3.prefWidthProperty().bind(weeklyViewToolBar.widthProperty().divide(4));
 HBox myHbox = new HBox(weeklyViewToolBar);
 
+//Set up binding for toolBar for weeklyview
 weeklyViewToolBar.prefHeightProperty().bind(toolBar.heightProperty().divide(4));
 weeklyViewToolBar.prefWidthProperty().bind(toolBar.widthProperty().divide(2));
-//weeklyViewToolBar.setPadding(new Insets(5,20,5,8));
- weeklyViewToolBar.boundsInParentProperty();
- weeklyViewToolBar.setBorder(Border.EMPTY);
- weeklyViewToolBar.setBackground(Background.EMPTY);
+weeklyViewToolBar.boundsInParentProperty();
+weeklyViewToolBar.setBorder(Border.EMPTY);
+weeklyViewToolBar.setBackground(Background.EMPTY);
 myHbox.setAlignment(Pos.BOTTOM_CENTER);
 myHbox.prefHeightProperty().bind(toolBar.heightProperty().divide(4));
 
@@ -276,7 +282,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     String classRoom= "CSCI";
     String startTime = "CSCI";
     String endTime= "CSCI";
-    
     String firstName= "Corey";
     String middleName= "Brian";
     String LastName= "Solana";
@@ -313,14 +318,13 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
      myStudent = new Student(i + "" + firstName,middleName,LastName,passWord,userName,studentId,emailAddress,phoneNumber, privLvl,courseList,appointmentList);    
      students.add(myStudent);
  }
- 
  //Adds course 2 and 3 to student 1
  students.get(0).getCourseList().add(courses.get(1));
  students.get(0).getCourseList().add(courses.get(2));
  
  
  //Add student 0 to courses registered students
- courses.get(1).getStudentsRegistered().add(students.get(0));
+ //courses.get(1).getStudentsRegistered().add(students.get(0));
  //courses.get(2).getStudentsRegistered().add(students.get(0));
  int x = courses.get(1).getStudentsRegistered().size();
 System.out.print(x);
