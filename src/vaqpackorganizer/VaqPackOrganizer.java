@@ -71,6 +71,7 @@ public class VaqPackOrganizer extends Application {
         
         BorderPane borderPane = new BorderPane();
         Scene scene = new Scene(borderPane, 1200, 650);
+        
         grid = new GridPane();
         weekImgView.setImage(weekImg);
         weekImgView.setFitHeight(100);
@@ -97,15 +98,11 @@ public class VaqPackOrganizer extends Application {
         userManagerBttn.setToggleGroup(toolBarGroup);
         
         toolBar = new ToolBar(weeklyScheduleBttn,new Separator(),monthlyScheduleBttn,new Separator(),schoolInfoBttn,new Separator(),userManagerBttn);
-        
         toolBar.boundsInParentProperty();
         toolBar.setBorder(Border.EMPTY);
         toolBar.setBackground(Background.EMPTY);
-        
-        
-        
         borderPane.setMinSize(0,0);
-       borderPane.setStyle("-fx-border-color: black;");
+        borderPane.setStyle("-fx-border-color: black;");
         
         //Setting toolbar styles
         toolBar.setOrientation(Orientation.HORIZONTAL);
@@ -129,7 +126,7 @@ public class VaqPackOrganizer extends Application {
         toolBar.getItems().get(4).setScaleY(1.1);
         });
         }
-    //On mouse exit return Button to normal size
+        //On mouse exit return Button to normal size
         {
         toolBar.getItems().get(0).setOnMouseExited((ae) -> {
         toolBar.getItems().get(0).setScaleX(1);
@@ -187,16 +184,7 @@ public class VaqPackOrganizer extends Application {
               }
     });
         
-        //Setup a GridPane
-        
-        grid.setMinSize(0,0);
-        borderPane.minHeight(0);
-        grid.setMaxSize(800, 800);
-        
-        grid.prefHeightProperty().bind(borderPane.heightProperty().divide(4));
-        grid.prefWidthProperty().bind(borderPane.widthProperty().divide(3));
-
- //Setup times
+ //Setup times(ticks), these objects are returned by the ToggleButton when pressed and the passed on to the generateTicks function
  Object object = 0;
  Object object1 = 15;
  Object object2 = 30;
@@ -204,9 +192,11 @@ public class VaqPackOrganizer extends Application {
  int hourly = (int) object;
  int quarters = (int) object1;
  int biHours = (int) object2;
- //Create toggleButtons for toolBar
+ //Create toggleButtons for bottom 3 button toolBar
  ToggleButton tb1 = new ToggleButton("Bi-Hours");
+ //Binding the ToggleButton (tgb)
  tb1.fontProperty().bind(fontTracking);
+ //This is where you set the togglebuttons UserData proptertery which in this instance is an object casted as an int 
  tb1.setUserData(biHours);
  ToggleButton tb2 = new ToggleButton("Hours");
  tb2.setUserData(hourly);
@@ -222,45 +212,48 @@ public class VaqPackOrganizer extends Application {
  tb2.setToggleGroup(group);
  tb3.setToggleGroup(group);   
  
- //Bind button to Toolbar
+ //Bind button h and w to Toolbar
  ToolBar weeklyViewToolBar = new ToolBar(new Separator(),new Separator(),tb1,new Separator(),tb2,new Separator(),tb3,new Separator(),new Separator());
+//The buttons w and h are binded to 1/4 the size of the toolBar
  tb1.prefHeightProperty().bind(weeklyViewToolBar.heightProperty().divide(4));
  tb1.prefWidthProperty().bind(weeklyViewToolBar.widthProperty().divide(4));
  tb2.prefHeightProperty().bind(weeklyViewToolBar.heightProperty().divide(4));
  tb2.prefWidthProperty().bind(weeklyViewToolBar.widthProperty().divide(4));
  tb3.prefHeightProperty().bind(weeklyViewToolBar.heightProperty().divide(4));
  tb3.prefWidthProperty().bind(weeklyViewToolBar.widthProperty().divide(4));
-HBox myHbox = new HBox(weeklyViewToolBar);
+//We create an Hbox to put the toolBar in, an Hbox is easier to manipulate positioning//
+ HBox myHbox = new HBox(weeklyViewToolBar);
 
-//Set up binding for toolBar for weeklyview
+//Set up binding for weeklyviewtoolBar to toolBar// We bind the bottom toolBar to the top toolBar for easy manipulation
 weeklyViewToolBar.prefHeightProperty().bind(toolBar.heightProperty().divide(4));
 weeklyViewToolBar.prefWidthProperty().bind(toolBar.widthProperty().divide(2));
+//The previous two lines bind the weeklyViewToolBar to 1/4 the h of the toolBar(the top) and the w to 1/2 of the toolBar
 weeklyViewToolBar.boundsInParentProperty();
 weeklyViewToolBar.setBorder(Border.EMPTY);
 weeklyViewToolBar.setBackground(Background.EMPTY);
 myHbox.setAlignment(Pos.BOTTOM_CENTER);
 myHbox.prefHeightProperty().bind(toolBar.heightProperty().divide(4));
 
+//This is the tgb listener//When pressed the tgb will run function addTimeToGrid passing the userData set earlier 
+//
 group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     public void changed(ObservableValue<? extends Toggle> ov,
         Toggle toggle, Toggle new_toggle) {
             if (new_toggle == null)
                 addTimeToGrid(tb1.getUserData());
- 
-            else
+             else
              addTimeToGrid(group.getSelectedToggle().getUserData());
-        
     }
 });
-       
-      
-        borderPane.setTop(toolBar);
+
+  borderPane.setTop(toolBar);
         borderPane.setPadding(new Insets(5,10,5,10));
-        
-        weeklyScheduleBttn.setOnAction((ae) -> {
-                tb1.fire();
+
+         weeklyScheduleBttn.setOnAction((ae) -> {
+        //The tb1.fire() line sets of the onButtonClick event, this allows us to have a default view whenever the weeklyScheduleBttn is clicked
+        tb1.fire();
+        //This sets the center of the borderPane to weeklyViewGrid
         borderPane.setBottom(myHbox);
-        
         borderPane.setCenter(grid);    
         grid.setHgrow(grid,Priority.ALWAYS);
          });
@@ -272,7 +265,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         borderPane.setCenter(monthlyGrid);
         borderPane.setLeft(monthlyHbox);
          });
-        
+       
+        //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     String courseName = "Science";
     String coursePrefix = "3345";
     String courseNumber = "03I";
@@ -296,7 +290,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     ArrayList<Student> studentsRegistered = new ArrayList<Student>();
     ArrayList<Appointment> appointmentList = new ArrayList<Appointment>();
     
- //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
+ 
     //These set how many courses and students we are creatig to play around with
     int courseCount = 8;
     int studentCount = 4;
@@ -335,18 +329,17 @@ for (int i = 0;i<courses.get(1).getStudentsRegistered().size();i++)
         System.out.print(students.get(0).getCourseList().get(i).getCourseName() + " " + " \n");
 //adding junk for testting git
 
-
-//for (int i = 0;i<students.get(0).getCourseList().size();i++)
-//System.out.print(students.get(0).getCourseList().get(i).getCourseName() + "\n");
-        
-        primaryStage.setTitle("VaqPack");
+ 
+ 
+ 
+    primaryStage.setTitle("VaqPack");
         primaryStage.setScene(scene);
         primaryStage.show();
+ 
+ 
     }
  public static void main(String[] args) {
-    
            launch(args);
-
     }
 
 public void addTimeToGrid(Object timeIncrement)
@@ -360,81 +353,40 @@ public void addTimeToGrid(Object timeIncrement)
         TimeTicks timeTicks = new TimeTicks(time);
         timeTicks.generateTicks();
         String[] timeIntervals= timeTicks.getTimeTicksStrings();
-
+//This setups up the different views of the weeklySchedule
+       {    
     final int numCols =  6;
+    //The number of rows is dependent on the timeIncrement object passed from the tgb
     final int numRows = timeIntervals.length;
-        
-     
-     for(int i = 0;i<numCols;i++)   
+    for(int i = 0;i<numCols;i++)   
      {
      column = new ColumnConstraints();
      column.setPercentWidth(50);
      grid.getColumnConstraints().add(column);
       }
-     
      for(int i = 0;i<numRows;i++)   
      {
      row = new RowConstraints();
      row.setMinHeight(5);
      row.prefHeightProperty().bind(grid.heightProperty());
      grid.getRowConstraints().add(row);
-     }    
-
+     }   
+        }
     //Add time data to column 1
      for(int i = 0;i<timeIntervals.length;i++)
         {
         Label myButton1 = new Label();
         myButton1.getProperties().clear();
-        
         myButton1.prefWidthProperty().bind(grid.widthProperty().divide(7));
         //myButton1.prefHeightProperty().bind(grid.heightProperty().divide(100));
         myButton1.setAlignment(Pos.CENTER);
         myButton1.setText(timeIntervals[i]);
         myButton1.fontProperty().bind(fontTracking);
         grid.addColumn(0, myButton1);
-        
         }
 grid.setGridLinesVisible(true);      
     }
 
-public void addCoursetoStudent(Course myCourse,Student myStudent)
-{
-    //If blank add the user
-    if (students.size() == 0)
-    {
-    students.add(myStudent);
-    }
-    //For all of students
-for(int i = 0;i<students.size();i++)
- {
-     //Search for a student = to myStudent
-if (students.get(i).equals(myStudent))
-    {
-       System.out.print("I found a student = to the student");
-        //Add myCourse to student. The student now has added a class to his myCourse.courseList 
-     students.get(i).getCourseList().add(myCourse);
-    }
-          //If Student doesnt exist, add to students and recursivly call addCoursetoStudent
-
-}
-}
-
- public void registerStudentInCourses()
- {
-
- //For every student in my Students
-for (int i = 0;i<students.size();i++)
- {
-  //Go through courses
-    for (int x = 0;x<courses.size();x++)
-    {
-        //And if 
-    if(students.get(i).getCourseList().equals(courses.get(x)))
-      {
-        courses.get(x).getStudentsRegistered().add(students.get(i));
-      }
-    }
-  }
 
 /*students.get(0).getCourseList().add(courses.get(1));
 //Register students in course 0
@@ -443,4 +395,4 @@ courses.get(0).getStudentsRegistered().add(students.get(1));
 *///courses.get(0).getStudentsRegistered().add(students.get(2));
  
  }
-}
+
