@@ -12,8 +12,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -21,11 +19,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
+import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -38,10 +39,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -52,6 +52,9 @@ import javafx.stage.Stage;
 public class VaqPackOrganizer extends Application {
     
     public ArrayList<Student> students = new ArrayList<Student>();
+    
+    
+   
     public ArrayList<Course> courses = new ArrayList<Course>();
     public ArrayList<Appointment> myAppointments = new ArrayList<Appointment>();
     Image imageDecline = new Image(getClass().getResourceAsStream("decline-button.png"));
@@ -68,6 +71,58 @@ public class VaqPackOrganizer extends Application {
     ObjectProperty<Font> fontTracking;
     @Override
     public void start(Stage primaryStage) {
+
+        
+        //Login Splash Page
+        //---------------------------------LOGIN PAGE------------------------------------------------------------------
+        Stage loginStage = new Stage();
+        BorderPane loginBorderPane = new BorderPane();
+        Scene loginScene = new Scene(loginBorderPane,400,400);
+        loginStage.setScene(loginScene);
+        loginStage.show();
+        
+        loginBorderPane.setPadding(new Insets(10,50,50,50));
+        HBox loginHbox = new HBox();
+        loginHbox.setPadding(new Insets(20,20,20,30));
+        GridPane loginGridPane = new GridPane();
+        loginGridPane.setPadding(new Insets(20,20,20,20));
+        loginGridPane.setHgap(5);
+        loginGridPane.setVgap(5);
+        Label userNameLbl = new Label("Username");
+        TextField userNameTxt = new TextField();
+        Label passwordLbl = new Label("Password");
+        PasswordField passFld = new PasswordField();
+        Button loginBtn = new Button("Login");
+        Label messageLbl = new Label();
+        loginGridPane.add(userNameLbl, 0, 0);
+        loginGridPane.add(userNameTxt, 1, 0);
+        loginGridPane.add(passwordLbl, 0, 1);
+        loginGridPane.add(passFld, 1, 1);
+        loginGridPane.add(loginBtn, 2, 1);
+        loginGridPane.add(messageLbl, 1, 2);
+        Reflection reflect = new Reflection ();
+        reflect.setFraction(.85);
+        loginGridPane.setEffect(reflect);
+        Text loginTxt = new Text("VaqPaq Login");
+        loginTxt.setFont(Font.font("Courier New", FontWeight.BOLD, 28));
+        loginHbox.getChildren().add(loginTxt);
+        loginBorderPane.setTop(loginHbox);
+        loginBorderPane.setCenter(loginGridPane);
+        
+        //On loginBtn press
+        loginBtn.setOnAction(ae -> {
+            //To Do stuff here
+           
+            
+            loginStage.close();
+            primaryStage.show();
+            
+        });
+        
+        
+        
+        //-----------------------------END OF LOGIN PAGE------------------------------------------------------------------
+        
         
         BorderPane borderPane = new BorderPane();
         Scene scene = new Scene(borderPane, 1200, 650);
@@ -248,9 +303,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
 
   borderPane.setTop(toolBar);
         borderPane.setPadding(new Insets(5,10,5,10));
-
          weeklyScheduleBttn.setOnAction((ae) -> {
-        //The tb1.fire() line sets of the onButtonClick event, this allows us to have a default view whenever the weeklyScheduleBttn is clicked
+        //The tb1.fire() line sets off the onButtonClick event, this allows us to have a default view whenever the weeklyScheduleBttn is clicked
         tb1.fire();
         //This sets the center of the borderPane to weeklyViewGrid
         borderPane.setBottom(myHbox);
@@ -320,21 +374,20 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
  //Add student 0 to courses registered students
  //courses.get(1).getStudentsRegistered().add(students.get(0));
  //courses.get(2).getStudentsRegistered().add(students.get(0));
- int x = courses.get(1).getStudentsRegistered().size();
+int x = courses.get(1).getStudentsRegistered().size();
 System.out.print(x);
+
 for (int i = 0;i<courses.get(1).getStudentsRegistered().size();i++)
         System .out.print(courses.get(1).getStudentsRegistered().get(i).getFirstName() + " " + " \n");
 
  for (int i = 0;i<students.get(0).getCourseList().size();i++)
         System.out.print(students.get(0).getCourseList().get(i).getCourseName() + " " + " \n");
 //adding junk for testting git
-
- 
  
  
     primaryStage.setTitle("VaqPack");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    primaryStage.setScene(scene);
+
  
  
     }
