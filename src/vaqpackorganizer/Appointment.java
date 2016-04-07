@@ -1,55 +1,25 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package vaqpackorganizer;
 
-/**
- *
- * @author Corey
- */
+import java.time.LocalDate;
 public class Appointment {
- String appointmentWeekDay;
- String appointmentMonth;
- String appointmentDate;
+LocalDate appointmentDate;
  String appointmentStartTime;
  String appointmentEndTime;
  String appointmentLocation;
  String appointmentReason;
 
-    public Appointment(String appointmentWeekDay, String appointmentMonth, String appointmentDate, String appointmentStartTime, String appointmentEndTime, String appointmentLocation, String appointmentReason) {
-        this.appointmentWeekDay = appointmentWeekDay;
-        this.appointmentMonth = appointmentMonth;
+    public Appointment(LocalDate appointmentDate, String appointmentStartTime, String appointmentEndTime, String appointmentLocation, String appointmentReason) {
         this.appointmentDate = appointmentDate;
         this.appointmentStartTime = appointmentStartTime;
         this.appointmentEndTime = appointmentEndTime;
         this.appointmentLocation = appointmentLocation;
         this.appointmentReason = appointmentReason;
     }
- 
- 
-    public String getAppointmentWeekDay() {
-        return appointmentWeekDay;
-    }
-
-    public void setAppointmentWeekDay(String appointmentWeekDay) {
-        this.appointmentWeekDay = appointmentWeekDay;
-    }
-
-    public String getAppointmentMonth() {
-        return appointmentMonth;
-    }
-
-    public void setAppointmentMonth(String appointmentMonth) {
-        this.appointmentMonth = appointmentMonth;
-    }
-
-    public String getAppointmentDate() {
+    public LocalDate getAppointmentDate() {
         return appointmentDate;
     }
 
-    public void setAppointmentDate(String appointmentDate) {
+    public void setAppointmentDate(LocalDate appointmentDate) {
         this.appointmentDate = appointmentDate;
     }
 
@@ -84,5 +54,4 @@ public class Appointment {
     public void setAppointmentReason(String appointmentReason) {
         this.appointmentReason = appointmentReason;
     }
- 
 }

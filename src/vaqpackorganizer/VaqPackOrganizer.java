@@ -6,18 +6,32 @@
 package vaqpackorganizer;
 
 
+import com.sun.javafx.scene.control.skin.DatePickerSkin;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.MonthDay;
+import java.time.Period;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Random;
 import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Separator;
@@ -26,9 +40,11 @@ import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -39,11 +55,15 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 /**
  *
@@ -52,12 +72,10 @@ import javafx.stage.Stage;
 public class VaqPackOrganizer extends Application {
     
     public ArrayList<Student> students = new ArrayList<Student>();
-    
-    
-   
     public ArrayList<Course> courses = new ArrayList<Course>();
     public ArrayList<Appointment> myAppointments = new ArrayList<Appointment>();
     Image imageDecline = new Image(getClass().getResourceAsStream("decline-button.png"));
+    Image imageStar = new Image(getClass().getResourceAsStream("iconStarGold.png"));
     Image weekImg = new Image(getClass().getResourceAsStream("calendar_view_week.png"));
     ImageView weekImgView = new ImageView();
     
@@ -112,9 +130,7 @@ public class VaqPackOrganizer extends Application {
         //On loginBtn press
         loginBtn.setOnAction(ae -> {
             //To Do stuff here
-           
-            
-            loginStage.close();
+           loginStage.close();
             primaryStage.show();
             
         });
@@ -122,18 +138,20 @@ public class VaqPackOrganizer extends Application {
         
         
         //-----------------------------END OF LOGIN PAGE------------------------------------------------------------------
+        //-----------------------------DatePickerView PAGE------------------------------------------------------------------
+ 
+
+        //-----------------------------END DatePickerView PAGE------------------------------------------------------------------
         
         
         BorderPane borderPane = new BorderPane();
         Scene scene = new Scene(borderPane, 1200, 650);
-        
         grid = new GridPane();
         weekImgView.setImage(weekImg);
         weekImgView.setFitHeight(100);
         weekImgView.setFitWidth(100);
         weekImgView.setPreserveRatio(true);
         weekImgView.smoothProperty();
-        
         Label weeklyScheduleBttnTxt = new Label ("Weekly Schedule");
         Label monthlyScheduleBttnTxt = new Label ("Monthly Schedule");
         Label schoolInfoBttnTxt = new Label ("School Information");
@@ -300,10 +318,11 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
              addTimeToGrid(group.getSelectedToggle().getUserData());
     }
 });
-
-  borderPane.setTop(toolBar);
+    //Set the top of the borderpane as our toolbar
+        borderPane.setTop(toolBar);
         borderPane.setPadding(new Insets(5,10,5,10));
-         weeklyScheduleBttn.setOnAction((ae) -> {
+//Main Buttons ActionEvents
+        weeklyScheduleBttn.setOnAction((ae) -> {
         //The tb1.fire() line sets off the onButtonClick event, this allows us to have a default view whenever the weeklyScheduleBttn is clicked
         tb1.fire();
         //This sets the center of the borderPane to weeklyViewGrid
@@ -312,14 +331,102 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         grid.setHgrow(grid,Priority.ALWAYS);
          });
         
+ //Monthly Button
         monthlyScheduleBttn.setOnAction((ae) -> {
-        GridPane monthlyGrid = new GridPane();
+        
+        
+        borderPane.setBottom(null);
         HBox monthlyHbox = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
-        borderPane.setCenter(monthlyGrid);
-        borderPane.setLeft(monthlyHbox);
-         });
+////       //This sets up the date for the semester for labeling later
+       LocalDate semesterStart = LocalDate.of(2016,1,15);
+       LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
+       long semesterRange = ChronoUnit.DAYS.between(semesterStart,semesterEnd);
+       long semesterRangeMonths = ChronoUnit.MONTHS.between(semesterStart, semesterEnd);
+//       
+       int days =  (int) semesterRange;
+       int[] dayOfMonthArray = new int[days];
        
+       for (int i = 0;i<days;i++)
+       {
+           dayOfMonthArray[i] = semesterStart.plusDays(i).getDayOfMonth();
+       }
+       for (int i = 0;i<dayOfMonthArray.length;i++)
+       {
+       System.out.println(dayOfMonthArray[i]);
+       }
+         
+       //DatePicker setup  
+       DatePicker datePicker = new DatePicker();
+       
+         Callback<DatePicker,DateCell> dayCellFactory1 = 
+               new Callback <DatePicker, DateCell>(){
+                    public DateCell call (final DatePicker datePicker){
+                        return new DateCell(){
+                        @Override
+                            public void updateItem(LocalDate item, boolean empty){
+                            //Must Call Super
+                                super.updateItem(item, empty);
+                                this.setPrefSize(75, 75);    
+                                //Disable all before and after semester start and end
+                                if(item.isAfter(semesterEnd)){
+                                this.setDisable(true);
+                                    }
+                                if(item.isBefore(semesterStart)){
+                                this.setDisable(true);
+                                    }
+                                LocalDate apptTime = LocalDate.of(2016,2,15);
+                                String startTime = new String("0800 AM");
+                                String endTime = new String ("1000 AM");
+                                String location = new String ("Mexico,Mecixo City");
+                                String reason = new String ("Drug Fiesta");
+                                Appointment myAppt = new Appointment(apptTime,startTime,endTime,location,reason);
+                                
+                                 setTooltip(new Tooltip("You have something scheduled"));
+                                //Show Weekends in blue
+                                if (apptTime.isEqual(item))
+                                {
+                                  ImageView myView = new ImageView(imageStar)  ;
+                                  myView.setFitHeight(10);
+                                  myView.setFitWidth(10);
+                                  
+                                this.setGraphic(myView);
+                                }
+                                 DayOfWeek day = DayOfWeek.from(item);
+                                    if (day == DayOfWeek.SATURDAY||day == DayOfWeek.SUNDAY)
+                                    {
+                                  
+                                  this.setTextFill(Color.BLUE);
+                                  this.setText("Weekend");
+                                  
+                                  
+                                  setStyle("-fx-background-color: #EEEEEE;");
+                                  }
+                                }
+                            };
+                        }
+                    };
+                 
+       datePicker.setDayCellFactory(dayCellFactory1);
+       
+       
+       
+       DatePickerSkin datePickerSkin = new DatePickerSkin(datePicker);
+       Node popupContent = datePickerSkin.getPopupContent();
+                        datePicker.setOnAction(ax -> {
+                        LocalDate date = datePicker.getValue();
+                        System.out.println(date);
+       
+                        });
+      //  popupContent.applyCss();
+        
+        
+       borderPane.setCenter(popupContent);
+       borderPane.setLeft(monthlyHbox);
+       
+        });
+        
+        
         //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     String courseName = "Science";
     String coursePrefix = "3345";
@@ -356,34 +463,27 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     for (int i = 0;i<courseCount;i++)
     {
         //Each time the for loop executes it initializes a new Course object
-        myCourse = new Course(courseName + " " + i ,coursePrefix,courseNumber,classRoom,startTime,endTime,courseDesc,startIndex,endIndex,myProf,studentsRegistered);   
+   //        myCourse = new Course(courseName + " " + i ,coursePrefix,courseNumber,classRoom,startTime,endTime,courseDesc,startIndex,endIndex,myProf,studentsRegistered);   
         //Add the course to the courses ArrayList
-        courses.add(myCourse);
+        //courses.add(myCourse);
     }
 //This initializes a new student
  for (int i = 0;i<courseCount;i++)
  {
-     myStudent = new Student(i + "" + firstName,middleName,LastName,passWord,userName,studentId,emailAddress,phoneNumber, privLvl,courseList,appointmentList);    
-     students.add(myStudent);
+   //  myStudent = new Student(i + "" + firstName,middleName,LastName,passWord,userName,studentId,emailAddress,phoneNumber, privLvl,courseList,appointmentList);    
+     //students.add(myStudent);
  }
  //Adds course 2 and 3 to student 1
- students.get(0).getCourseList().add(courses.get(1));
- students.get(0).getCourseList().add(courses.get(2));
+// students.get(0).getCourseList().add(courses.get(1));
+ //students.get(0).getCourseList().add(courses.get(2));
  
  
  //Add student 0 to courses registered students
  //courses.get(1).getStudentsRegistered().add(students.get(0));
  //courses.get(2).getStudentsRegistered().add(students.get(0));
-int x = courses.get(1).getStudentsRegistered().size();
-System.out.print(x);
 
-for (int i = 0;i<courses.get(1).getStudentsRegistered().size();i++)
-        System .out.print(courses.get(1).getStudentsRegistered().get(i).getFirstName() + " " + " \n");
-
- for (int i = 0;i<students.get(0).getCourseList().size();i++)
-        System.out.print(students.get(0).getCourseList().get(i).getCourseName() + " " + " \n");
-//adding junk for testting git
- 
+// for (int i = 0;i<students.get(0).getCourseList().size();i++)
+  //      System.out.print(students.get(0).getCourseList().get(i).getCourseName() + " " + " \n");
  
     primaryStage.setTitle("VaqPack");
     primaryStage.setScene(scene);

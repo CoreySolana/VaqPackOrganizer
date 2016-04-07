@@ -59,14 +59,12 @@ public class TimeTicks {
     
     public void printTicks()
     {
-          
-                
         for (int i = 0; i < timeTicksStrings.length; i++ ) 
         {
             System.out.println(timeTicksStrings[i]);
         }
     }
-   
+ 
     /**
      * @return the time_from
      */
@@ -79,7 +77,6 @@ public class TimeTicks {
     public void setTime_from(int time_from) {
         this.time_from = time_from;
     }
-
     /**
      * @return the time_to
      */

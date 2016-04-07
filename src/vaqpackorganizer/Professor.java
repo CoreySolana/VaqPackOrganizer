@@ -20,6 +20,7 @@ private String emailAddress;
 private String phoneNumber;
 private String officeNumber;
 private String officeHoursStartTime;
+private String officeHoursEndTime;
 
     public Professor(String firstName, String middleName, String LastName, String emailAddress, String phoneNumber, String officeNumber, String officeHoursStartTime, String officeHoursEndTime) {
         this.firstName = firstName;
@@ -96,9 +97,7 @@ private String officeHoursStartTime;
     public void setOfficeHoursEndTime(String officeHoursEndTime) {
         this.officeHoursEndTime = officeHoursEndTime;
     }
-private String officeHoursEndTime;
 
-//change here
-//another change
-//another change 2
+
+
 }

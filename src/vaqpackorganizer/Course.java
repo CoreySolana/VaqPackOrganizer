@@ -5,6 +5,7 @@
  */
 package vaqpackorganizer;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 /**
@@ -14,16 +15,15 @@ import java.util.ArrayList;
 public class Course {
     
     private String courseName;
-    private String coursePrefix;
+    private String courseId;
     private String courseNumber;
     private String classRoom;
+    private LocalDate classDate;
     private String startTime;
     private String endTime;
     private String courseDesc;
-    private String startIndex;
-    private String endIndex;
-    private Professor prof;
-    private ArrayList<Student> studentsRegistered;
+    private String profId;
+    
 
     public String getCourseName() {
         return courseName;
@@ -33,12 +33,12 @@ public class Course {
         this.courseName = courseName;
     }
 
-    public String getCoursePrefix() {
-        return coursePrefix;
+    public String getCourseId() {
+        return courseId;
     }
 
-    public void setCoursePrefix(String coursePrefix) {
-        this.coursePrefix = coursePrefix;
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
     }
 
     public String getCourseNumber() {
@@ -81,47 +81,37 @@ public class Course {
         this.courseDesc = courseDesc;
     }
 
-    public String getStartIndex() {
-        return startIndex;
-    }
-
-    public void setStartIndex(String startIndex) {
-        this.startIndex = startIndex;
-    }
-
-    public String getEndIndex() {
-        return endIndex;
-    }
-
-    public void setEndIndex(String endIndex) {
-        this.endIndex = endIndex;
-    }
-
-    public ArrayList<Student> getStudentsRegistered() {
-        return studentsRegistered;
-    }
-
-    public void setStudentsRegistered(ArrayList<Student> studentsRegistered) {
-        this.studentsRegistered = studentsRegistered;
-    }
-
-    public Course(String courseName, String coursePrefix, String courseNumber, String classRoom, String startTime, String endTime, String courseDesc, String startIndex, String endIndex, Professor prof, ArrayList<Student> studentsRegistered) {
+    public Course(String courseName, String courseId, String courseNumber, String classRoom, LocalDate classDate, String startTime, String endTime, String courseDesc, String profId) {
         this.courseName = courseName;
-        this.coursePrefix = coursePrefix;
+        this.courseId = courseId;
         this.courseNumber = courseNumber;
         this.classRoom = classRoom;
+        this.classDate = classDate;
         this.startTime = startTime;
         this.endTime = endTime;
         this.courseDesc = courseDesc;
-        this.startIndex = startIndex;
-        this.endIndex = endIndex;
-        this.prof = prof;
-        this.studentsRegistered = studentsRegistered;
+        this.profId = profId;
     }
 
-   
-   
-            
+    public LocalDate getClassDate() {
+        return classDate;
+    }
+
+    public void setClassDate(LocalDate classDate) {
+        this.classDate = classDate;
+    }
+
+    public String getProfId() {
+        return profId;
+    }
+
+    public void setProfId(String profId) {
+        this.profId = profId;
+    }
+
+
+
+         
 public ArrayList<Course> getCoursesForStudent(ArrayList<Student> studentsRegistered,Student thisStudent)
         
         {
@@ -137,7 +127,6 @@ public ArrayList<Course> getCoursesForStudent(ArrayList<Student> studentsRegiste
             }   
            }
         return thisStudentsCourses;
-            
         }    
     
 /* Will be the button for opening the syllabus
