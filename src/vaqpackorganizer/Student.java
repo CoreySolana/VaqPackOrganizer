@@ -1,30 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package vaqpackorganizer;
-
 import java.util.ArrayList;
 
-/**
- *
- * @author Corey
- */
 public class Student {
 private String firstName;
 private String middleName;    
 private String LastName;
 private String passWord;
 private String userName;
-private String studentId;
+private int studentId;
 private String emailAddress;
 private String phoneNumber;
 private int privLvl;
-private ArrayList<Course> courseList;
-private ArrayList<Appointment> appointmentList;
 
-    public String getFirstName() {
+public String getFirstName() {
         return firstName;
     }
 
@@ -64,11 +52,11 @@ private ArrayList<Appointment> appointmentList;
         this.userName = userName;
     }
 
-    public String getStudentId() {
+    public int getStudentId() {
         return studentId;
     }
 
-    public void setStudentId(String studentId) {
+    public void setStudentId(int studentId) {
         this.studentId = studentId;
     }
 
@@ -96,25 +84,16 @@ private ArrayList<Appointment> appointmentList;
         this.privLvl = privLvl;
     }
 
-    public ArrayList<Course> getCourseList() {
-        return courseList;
-    }
-
-    public void setCourseList(ArrayList<Course> courseList) {
-        this.courseList = courseList;
-    }
-
-    public Student(String firstName, String middleName, String LastName, String passWord, String userName, String studentId, String emailAddress, String phoneNumber, int privLvl, ArrayList<Course> courseList,ArrayList<Appointment> appointmentList) {
+    public Student(int studentId,String firstName, String middleName, String LastName, String userName, String emailAddress, String phoneNumber, int privLvl,String passWord) {
+        this.studentId = studentId;
         this.firstName = firstName;
         this.middleName = middleName;
         this.LastName = LastName;
         this.passWord = passWord;
         this.userName = userName;
-        this.studentId = studentId;
         this.emailAddress = emailAddress;
         this.phoneNumber = phoneNumber;
         this.privLvl = privLvl;
-        this.courseList = courseList;
-        this.appointmentList = appointmentList;
+       
     }
     }

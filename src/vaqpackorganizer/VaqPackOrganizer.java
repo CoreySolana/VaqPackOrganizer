@@ -7,6 +7,11 @@ package vaqpackorganizer;
 
 
 import com.sun.javafx.scene.control.skin.DatePickerSkin;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
@@ -17,11 +22,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -29,6 +38,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
@@ -51,11 +61,14 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -78,7 +91,9 @@ public class VaqPackOrganizer extends Application {
     Image imageStar = new Image(getClass().getResourceAsStream("iconStarGold.png"));
     Image weekImg = new Image(getClass().getResourceAsStream("calendar_view_week.png"));
     ImageView weekImgView = new ImageView();
-    
+    Connection myConnection = null;
+    Statement myStat = null; 
+    ResultSet myRes = null;
     Button weeklyScheduleBttn ;
     Button monthlyScheduleBttn;
     Button schoolInfoBttn;
@@ -88,9 +103,31 @@ public class VaqPackOrganizer extends Application {
     GridPane grid;
     ObjectProperty<Font> fontTracking;
     @Override
-    public void start(Stage primaryStage) {
-
+    public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
         
+        //Setups DB connection
+        Class.forName("com.mysql.jdbc.Driver"); 
+        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
+        myStat = myConnection.createStatement();
+        String sql = "SELECT * FROM students";
+        String firstName1 = "Roland";
+        String middleName1 = "Tower";
+        String  lastName1 = "DeChaine";
+        String emailAddress1 = "DarkTower";
+        String phoneNumber1 = "6666666";
+        int privLevel1 = 1;
+        String passWord1 = "Testies";
+        String beg = "INSERT INTO `students` (`firstName`, `middleName`, `lastName`, `emailAddress`, `phoneNumber`, `privLevel`,`passWord`)";
+        String createStudentSql = beg + "VALUES ('"+ firstName1+"'," + "'"+middleName1 +"',"+ "'"+lastName1+"'," + "'"+emailAddress1+"'," +"'"+phoneNumber1+"'," + "'"+privLevel1+"'," + "'"+passWord1+"')";
+        
+        myStat.executeUpdate(createStudentSql);
+        myRes = myStat.executeQuery(sql);
+      
+        while(myRes.next())
+        {
+        //System.out.println("First name Is:" + "\t" +  myRes.getString("firstName"));
+        }
+      
         //Login Splash Page
         //---------------------------------LOGIN PAGE------------------------------------------------------------------
         Stage loginStage = new Stage();
@@ -134,15 +171,7 @@ public class VaqPackOrganizer extends Application {
             primaryStage.show();
             
         });
-        
-        
-        
         //-----------------------------END OF LOGIN PAGE------------------------------------------------------------------
-        //-----------------------------DatePickerView PAGE------------------------------------------------------------------
- 
-
-        //-----------------------------END DatePickerView PAGE------------------------------------------------------------------
-        
         
         BorderPane borderPane = new BorderPane();
         Scene scene = new Scene(borderPane, 1200, 650);
@@ -308,7 +337,6 @@ myHbox.setAlignment(Pos.BOTTOM_CENTER);
 myHbox.prefHeightProperty().bind(toolBar.heightProperty().divide(4));
 
 //This is the tgb listener//When pressed the tgb will run function addTimeToGrid passing the userData set earlier 
-//
 group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     public void changed(ObservableValue<? extends Toggle> ov,
         Toggle toggle, Toggle new_toggle) {
@@ -318,7 +346,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
              addTimeToGrid(group.getSelectedToggle().getUserData());
     }
 });
-    //Set the top of the borderpane as our toolbar
+//Set the top of the borderpane as our toolbar
         borderPane.setTop(toolBar);
         borderPane.setPadding(new Insets(5,10,5,10));
 //Main Buttons ActionEvents
@@ -333,12 +361,16 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         
  //Monthly Button
         monthlyScheduleBttn.setOnAction((ae) -> {
-        
-        
         borderPane.setBottom(null);
         HBox monthlyHbox = new HBox();
+        HBox monthlyHbox2 = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
-////       //This sets up the date for the semester for labeling later
+        Button apptBttn = new Button("Create Appointment");
+        Button apptBttn1 = new Button("Create Appointment");
+        monthlyHbox.getChildren().add(apptBttn);
+        monthlyHbox2.getChildren().add(apptBttn1);
+        
+ //This sets up the date for the semester for labeling later
        LocalDate semesterStart = LocalDate.of(2016,1,15);
        LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
        long semesterRange = ChronoUnit.DAYS.between(semesterStart,semesterEnd);
@@ -355,11 +387,10 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
        {
        System.out.println(dayOfMonthArray[i]);
        }
-         
-       //DatePicker setup  
+        //DatePicker setup  
        DatePicker datePicker = new DatePicker();
-       
-         Callback<DatePicker,DateCell> dayCellFactory1 = 
+       //DayCellFactory allows modification of cells in datePicker
+        Callback<DatePicker,DateCell> dayCellFactory1 = 
                new Callback <DatePicker, DateCell>(){
                     public DateCell call (final DatePicker datePicker){
                         return new DateCell(){
@@ -368,62 +399,119 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                             //Must Call Super
                                 super.updateItem(item, empty);
                                 this.setPrefSize(75, 75);    
-                                //Disable all before and after semester start and end
+                                
+                                //Action Events for when a date cell is clicked
+                                
+                                this.setOnMouseClicked(a -> {
+                                    
+                                        Stage apptStage = new Stage();
+                                        FlowPane myFlowPane = new FlowPane();
+                                        Scene apptScene = new Scene(myFlowPane,400,400);
+                                        TimeTicks timeTicks = new TimeTicks(30);
+                                        timeTicks.generateTicks();
+                                        String[] timeIntervals= timeTicks.getTimeTicksStrings();
+                                        ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
+                                        Label startTime = new Label("Appointment Start Time");
+                                        Label endTime = new Label("Appointment End Time");
+                                        Label todaysEvents = new Label("Todays Schedule of Events");
+                                        ComboBox apptStartTimeCombo = new ComboBox();
+                                        ComboBox apptEndTimeCombo = new ComboBox();
+                                        apptStartTimeCombo.setItems(list);
+                                        apptEndTimeCombo.setItems(list);
+                                        String apptStartTime;
+                                        String apptEndTime;
+                                        //System.out.println(apptStartTimeCombo.getValue());
+                                        // String apptEndTime = apptEndTimeCombo.getValue().toString();
+                                        int sId = 1;
+                                        //Sets it to todays date
+                                        String apptDate = item.toString();
+                                        String apptLoc;
+                                        String apptReason;
+                                        Label apptDateLbl = new Label("Appt Date");
+                                        Label apptLocLbl = new Label("Appt Location");
+                                        Label apptReasonLbl = new Label("Appt Reason");
+                                        TextField apptLocTxtFld = new TextField();
+                                        TextField apptReasonTxtFld = new TextField();
+                                    Button okBttn = new Button("OK");
+                                        myFlowPane.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn);    
+                                        okBttn.setOnAction(ax -> {
+                                            try {
+                                                myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
+                                                myStat = myConnection.createStatement();
+                                                String createApptsql = "INSERT INTO `test`.`appointments` (`students_studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('1', '2012-12-2', '08:00 AM', '10:00 AM', 'Hells Kitchen', 'Fight Crime');";
+                                                myStat.executeUpdate(createApptsql);
+                                                
+                                            } catch (SQLException ex) {
+                                                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                        
+                                        });
+                                        
+                                        
+                                        
+                                        apptStage.setScene(apptScene);
+                                        apptStage.show();
+                                    
+                                });
+                                
+                                this.setOnMouseEntered(a -> {
+                                this.setScaleX(1.4);
+                                this.setScaleY(1.4);
+                                
+                                });
+                                
+                                this.setOnMouseExited(a -> {
+                                this.setScaleX(1);
+                                this.setScaleY(1);
+                                
+                                });
+                                //Disable all dates before and after semester start and end
                                 if(item.isAfter(semesterEnd)){
                                 this.setDisable(true);
                                     }
                                 if(item.isBefore(semesterStart)){
                                 this.setDisable(true);
                                     }
+                                //Testing an appt
                                 LocalDate apptTime = LocalDate.of(2016,2,15);
                                 String startTime = new String("0800 AM");
                                 String endTime = new String ("1000 AM");
                                 String location = new String ("Mexico,Mecixo City");
                                 String reason = new String ("Drug Fiesta");
                                 Appointment myAppt = new Appointment(apptTime,startTime,endTime,location,reason);
-                                
-                                 setTooltip(new Tooltip("You have something scheduled"));
+       
                                 //Show Weekends in blue
-                                if (apptTime.isEqual(item))
+                                if (myAppt.appointmentDate.isEqual(item))
                                 {
+                                 setTooltip(new Tooltip(myAppt.appointmentStartTime + "--" + myAppt.appointmentStartTime ));
                                   ImageView myView = new ImageView(imageStar)  ;
                                   myView.setFitHeight(10);
                                   myView.setFitWidth(10);
                                   
                                 this.setGraphic(myView);
+                                this.setContentDisplay(ContentDisplay.TOP);
                                 }
                                  DayOfWeek day = DayOfWeek.from(item);
                                     if (day == DayOfWeek.SATURDAY||day == DayOfWeek.SUNDAY)
-                                    {
+                                   {
                                   
                                   this.setTextFill(Color.BLUE);
-                                  this.setText("Weekend");
-                                  
-                                  
                                   setStyle("-fx-background-color: #EEEEEE;");
                                   }
                                 }
                             };
                         }
                     };
-                 
+                 //Set custom cells to datePicker
        datePicker.setDayCellFactory(dayCellFactory1);
-       
-       
        
        DatePickerSkin datePickerSkin = new DatePickerSkin(datePicker);
        Node popupContent = datePickerSkin.getPopupContent();
-                        datePicker.setOnAction(ax -> {
-                        LocalDate date = datePicker.getValue();
-                        System.out.println(date);
        
-                        });
-      //  popupContent.applyCss();
-        
-        
+       
        borderPane.setCenter(popupContent);
        borderPane.setLeft(monthlyHbox);
-       
+       borderPane.setRight(monthlyHbox2);
         });
         
         
