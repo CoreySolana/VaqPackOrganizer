@@ -366,6 +366,60 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         HBox monthlyHbox2 = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
         Button apptBttn = new Button("Create Appointment");
+        
+        //ApptBttn listener
+        {
+        apptBttn.setOnAction(af -> {
+          Stage apptStage = new Stage();
+          FlowPane myFlowPane = new FlowPane();
+          Scene apptScene = new Scene(myFlowPane,300,400);
+          TimeTicks timeTicks = new TimeTicks(30);
+          timeTicks.generateTicks();
+          String[] timeIntervals= timeTicks.getTimeTicksStrings();
+          ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
+          Label startTime = new Label("Appointment Start Time");
+          Label endTime = new Label("Appointment End Time");
+          Label todaysEvents = new Label("Todays Schedule of Events");
+          ComboBox apptStartTimeCombo = new ComboBox();
+          ComboBox apptEndTimeCombo = new ComboBox();
+          apptStartTimeCombo.setItems(list);
+          apptEndTimeCombo.setItems(list);
+          String apptStartTime;
+          String apptEndTime;
+          String apptLoc;
+          String apptReason;
+          Label apptDateLbl = new Label("Appt Date");
+          Label apptLocLbl = new Label("Appt Location");
+          Label apptReasonLbl = new Label("Appt Reason");
+          TextField apptLocTxtFld = new TextField();
+          TextField apptReasonTxtFld = new TextField();
+          myFlowPane.setPadding(new Insets(11, 12, 13, 14));
+          myFlowPane.setHgap(20);
+          myFlowPane.setVgap(20);
+          DatePicker myPicker = new DatePicker();
+          
+          Button cancelBttn = new Button ("Cancel");
+          Button okBttn = new Button("Create Appt.");
+          myFlowPane.getChildren().addAll(myPicker,new Separator(),startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
+          okBttn.setOnAction(ax -> {
+             try {
+             myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
+             myStat = myConnection.createStatement();
+             String createApptsql = "INSERT INTO `test`.`appointments` (`students_studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('1', '2012-12-2', '08:00 AM', '10:00 AM', 'Hells Kitchen', 'Fight Crime');";
+             myStat.executeUpdate(createApptsql);
+                  } catch (SQLException ex) {
+                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                    });
+                cancelBttn.setOnAction(as -> {
+                 apptStage.close();
+                });
+                apptStage.setScene(apptScene);
+                apptStage.show();
+                  });
+            }
+        
+        
         Button apptBttn1 = new Button("Create Appointment");
         monthlyHbox.getChildren().add(apptBttn);
         monthlyHbox2.getChildren().add(apptBttn1);
@@ -401,12 +455,11 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 this.setPrefSize(75, 75);    
                                 
                                 //Action Events for when a date cell is clicked
-                                
                                 this.setOnMouseClicked(a -> {
                                     
                                         Stage apptStage = new Stage();
                                         FlowPane myFlowPane = new FlowPane();
-                                        Scene apptScene = new Scene(myFlowPane,400,400);
+                                        Scene apptScene = new Scene(myFlowPane,300,400);
                                         TimeTicks timeTicks = new TimeTicks(30);
                                         timeTicks.generateTicks();
                                         String[] timeIntervals= timeTicks.getTimeTicksStrings();
@@ -432,8 +485,12 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         Label apptReasonLbl = new Label("Appt Reason");
                                         TextField apptLocTxtFld = new TextField();
                                         TextField apptReasonTxtFld = new TextField();
-                                    Button okBttn = new Button("OK");
-                                        myFlowPane.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn);    
+                                        myFlowPane.setPadding(new Insets(11, 12, 13, 14));
+                                        myFlowPane.setHgap(20);
+                                        myFlowPane.setVgap(20);
+                                        Button cancelBttn = new Button ("Cancel");
+                                        Button okBttn = new Button("Create Appt.");
+                                        myFlowPane.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
                                         okBttn.setOnAction(ax -> {
                                             try {
                                                 myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
@@ -444,10 +501,13 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                             } catch (SQLException ex) {
                                                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                                             }
-                                        
                                         });
                                         
+                                        cancelBttn.setOnAction(as -> {
                                         
+                                        apptStage.close();
+                                        
+                                        });
                                         
                                         apptStage.setScene(apptScene);
                                         apptStage.show();
@@ -455,8 +515,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 });
                                 
                                 this.setOnMouseEntered(a -> {
-                                this.setScaleX(1.4);
-                                this.setScaleY(1.4);
+                                this.setScaleX(1.1);
+                                this.setScaleY(1.1);
                                 
                                 });
                                 
