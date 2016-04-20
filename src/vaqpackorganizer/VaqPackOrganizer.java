@@ -14,14 +14,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.Month;
-import java.time.MonthDay;
-import java.time.Period;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -31,7 +25,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -45,16 +38,17 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -64,19 +58,14 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 /**
  *
@@ -405,6 +394,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
              try {
              myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
              myStat = myConnection.createStatement();
+             
              String createApptsql = "INSERT INTO `test`.`appointments` (`students_studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('1', '2012-12-2', '08:00 AM', '10:00 AM', 'Hells Kitchen', 'Fight Crime');";
              myStat.executeUpdate(createApptsql);
                   } catch (SQLException ex) {
@@ -467,38 +457,37 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         Label startTime = new Label("Appointment Start Time");
                                         Label endTime = new Label("Appointment End Time");
                                         Label todaysEvents = new Label("Todays Schedule of Events");
+                                       
                                         ComboBox apptStartTimeCombo = new ComboBox();
                                         ComboBox apptEndTimeCombo = new ComboBox();
                                         apptStartTimeCombo.setItems(list);
                                         apptEndTimeCombo.setItems(list);
-                                        String apptStartTime;
-                                        String apptEndTime;
-                                        //System.out.println(apptStartTimeCombo.getValue());
-                                        // String apptEndTime = apptEndTimeCombo.getValue().toString();
-                                        int sId = 1;
                                         //Sets it to todays date
-                                        String apptDate = item.toString();
-                                        String apptLoc;
-                                        String apptReason;
-                                        Label apptDateLbl = new Label("Appt Date");
                                         Label apptLocLbl = new Label("Appt Location");
                                         Label apptReasonLbl = new Label("Appt Reason");
                                         TextField apptLocTxtFld = new TextField();
                                         TextField apptReasonTxtFld = new TextField();
+                                        String apptDate = item.toString();
                                         myFlowPane.setPadding(new Insets(11, 12, 13, 14));
                                         myFlowPane.setHgap(20);
                                         myFlowPane.setVgap(20);
                                         Button cancelBttn = new Button ("Cancel");
                                         Button okBttn = new Button("Create Appt.");
-                                        myFlowPane.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
+                                        TableView<Appointment> apptTable = viewAppointments();
+                                        myFlowPane.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn,apptTable);    
+                                        int stId = 1;
                                         okBttn.setOnAction(ax -> {
                                             try {
+                                        
+                                                String apptStartTime= apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
+                                                String apptEndTime= apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
+                                                //This needs to be changed to reflect the currentlu logged studentid
+                                                String createApptsql = ("INSERT INTO `test`.`appointments` (`studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('" + stId + "', '" + apptDate + "', '" + apptStartTime + "', '" + apptEndTime + "', '" +apptLocTxtFld.getText()+ "', '" + apptReasonTxtFld.getText() + "');");
                                                 myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
                                                 myStat = myConnection.createStatement();
-                                                String createApptsql = "INSERT INTO `test`.`appointments` (`students_studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('1', '2012-12-2', '08:00 AM', '10:00 AM', 'Hells Kitchen', 'Fight Crime');";
                                                 myStat.executeUpdate(createApptsql);
-                                                
-                                            } catch (SQLException ex) {
+                                                }
+                                            catch (SQLException ex) {
                                                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                                             }
                                         });
@@ -532,16 +521,9 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 if(item.isBefore(semesterStart)){
                                 this.setDisable(true);
                                     }
-                                //Testing an appt
-                                LocalDate apptTime = LocalDate.of(2016,2,15);
-                                String startTime = new String("0800 AM");
-                                String endTime = new String ("1000 AM");
-                                String location = new String ("Mexico,Mecixo City");
-                                String reason = new String ("Drug Fiesta");
-                                Appointment myAppt = new Appointment(apptTime,startTime,endTime,location,reason);
-       
+                                
                                 //Show Weekends in blue
-                                if (myAppt.appointmentDate.isEqual(item))
+                                /*if (myAppt.appointmentDate.isEqual(item))
                                 {
                                  setTooltip(new Tooltip(myAppt.appointmentStartTime + "--" + myAppt.appointmentStartTime ));
                                   ImageView myView = new ImageView(imageStar)  ;
@@ -551,6 +533,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 this.setGraphic(myView);
                                 this.setContentDisplay(ContentDisplay.TOP);
                                 }
+                                */
+                                
                                  DayOfWeek day = DayOfWeek.from(item);
                                     if (day == DayOfWeek.SATURDAY||day == DayOfWeek.SUNDAY)
                                    {
@@ -643,6 +627,73 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
            launch(args);
     }
 
+ 
+ public TableView viewAppointments(){
+ 
+ 
+            ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
+            TableView<Appointment> myTableView = new TableView<Appointment>();
+            try {
+                appointmentList = readAppointments();
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            myTableView.setItems(appointmentList);
+            
+            TableColumn<Appointment,Integer> appointmentId= new TableColumn<>("appointmentId");
+            appointmentId.setCellValueFactory(new PropertyValueFactory<Appointment,Integer>("appointmentId"));
+            
+	    TableColumn<Appointment,Integer> studentId= new TableColumn<>("studentId");
+            studentId.setCellValueFactory(new PropertyValueFactory<Appointment,Integer>("studentId"));
+
+            TableColumn<Appointment,String> apptDate = new TableColumn<>("apptDate");
+	    apptDate.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptDate"));
+            
+	    TableColumn<Appointment,String> apptStartTime = new TableColumn<>("apptStartTime");
+	    apptStartTime.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptStartTime"));
+
+	    TableColumn<Appointment,String> apptEndTime = new TableColumn<>("apptEndTime");
+	    apptEndTime.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptEndTime"));
+
+	    TableColumn<Appointment,String> apptLoc = new TableColumn<>("apptLoc");
+	    apptLoc.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptLoc"));
+
+	    TableColumn<Appointment,String> apptReason = new TableColumn<>("apptReason");
+	    apptReason.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptReason"));
+
+            myTableView.getColumns().setAll(appointmentId,studentId,apptDate,apptStartTime,apptEndTime,apptLoc,apptReason);
+
+
+
+
+ 
+            return myTableView;
+ 
+ }
+ 
+ 
+ public ObservableList readAppointments() throws SQLException
+    {
+        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
+        myStat = myConnection.createStatement();
+        String sql = "SELECT * FROM `test`.`appointments`";
+        myRes = myStat.executeQuery(sql);
+        ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
+        while(myRes.next())
+        {
+            int appointmentId = myRes.getInt("appointmentId");
+            int studentId = myRes.getInt("studentId");
+            String apptDate = myRes.getString("apptDate");
+            String startTime = myRes.getString("apptStartTime");
+            String endTime = myRes.getString("apptEndTime");
+            String apptLoc = myRes.getString("apptLoc");
+            String apptReason = myRes.getString("apptReason");
+            Appointment myAppointment = new Appointment(appointmentId,studentId,apptDate,startTime,endTime,apptLoc,apptReason);
+            appointmentList.add(myAppointment);
+        }
+        return appointmentList;
+    }
+ 
 public void addTimeToGrid(Object timeIncrement)
 {
         grid.setGridLinesVisible(false);

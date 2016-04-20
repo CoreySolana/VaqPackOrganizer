@@ -1,57 +1,85 @@
 package vaqpackorganizer;
 
 import java.time.LocalDate;
+
+
+
 public class Appointment {
-LocalDate appointmentDate;
- String appointmentStartTime;
- String appointmentEndTime;
- String appointmentLocation;
- String appointmentReason;
+ 
+ int appointmentId;
+ int studentId;
+ String apptDate;
+ String apptStartTime;
+ String apptEndTime;
+ String apptLoc;
+ String apptReason;
 
-    public Appointment(LocalDate appointmentDate, String appointmentStartTime, String appointmentEndTime, String appointmentLocation, String appointmentReason) {
-        this.appointmentDate = appointmentDate;
-        this.appointmentStartTime = appointmentStartTime;
-        this.appointmentEndTime = appointmentEndTime;
-        this.appointmentLocation = appointmentLocation;
-        this.appointmentReason = appointmentReason;
-    }
-    public LocalDate getAppointmentDate() {
-        return appointmentDate;
-    }
-
-    public void setAppointmentDate(LocalDate appointmentDate) {
-        this.appointmentDate = appointmentDate;
+    public Appointment(int appointmentId, int studentId, String apptDate, String apptStartTime, String apptEndTime, String apptLoc, String apptReason) {
+        this.appointmentId = appointmentId;
+        this.studentId = studentId;
+        this.apptDate = apptDate;
+        this.apptStartTime = apptStartTime;
+        this.apptEndTime = apptEndTime;
+        this.apptLoc = apptLoc;
+        this.apptReason = apptReason;
     }
 
-    public String getAppointmentStartTime() {
-        return appointmentStartTime;
+    public int getAppointmentId() {
+        return appointmentId;
     }
 
-    public void setAppointmentStartTime(String appointmentStartTime) {
-        this.appointmentStartTime = appointmentStartTime;
+    public void setAppointmentId(int appointmentId) {
+        this.appointmentId = appointmentId;
     }
 
-    public String getAppointmentEndTime() {
-        return appointmentEndTime;
+    public int getStudentId() {
+        return studentId;
     }
 
-    public void setAppointmentEndTime(String appointmentEndTime) {
-        this.appointmentEndTime = appointmentEndTime;
+    public void setStudentId(int studentId) {
+        this.studentId = studentId;
     }
 
-    public String getAppointmentLocation() {
-        return appointmentLocation;
+    public String getApptDate() {
+        return apptDate;
     }
 
-    public void setAppointmentLocation(String appointmentLocation) {
-        this.appointmentLocation = appointmentLocation;
+    public void setApptDate(String apptDate) {
+        this.apptDate = apptDate;
     }
 
-    public String getAppointmentReason() {
-        return appointmentReason;
+    public String getApptStartTime() {
+        return apptStartTime;
     }
 
-    public void setAppointmentReason(String appointmentReason) {
-        this.appointmentReason = appointmentReason;
+    public void setApptStartTime(String apptStartTime) {
+        this.apptStartTime = apptStartTime;
     }
+
+    public String getApptEndTime() {
+        return apptEndTime;
+    }
+
+    public void setApptEndTime(String apptEndTime) {
+        this.apptEndTime = apptEndTime;
+    }
+
+    public String getApptLoc() {
+        return apptLoc;
+    }
+
+    public void setApptLoc(String apptLoc) {
+        this.apptLoc = apptLoc;
+    }
+
+    public String getApptReason() {
+        return apptReason;
+    }
+
+    public void setApptReason(String apptReason) {
+        this.apptReason = apptReason;
+    }
+
+  
+   
 }
