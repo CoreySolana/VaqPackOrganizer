@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -47,6 +48,7 @@ import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
@@ -69,6 +71,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 /**
  *
@@ -82,6 +85,7 @@ public class VaqPackOrganizer extends Application {
     Image imageDecline = new Image(getClass().getResourceAsStream("decline-button.png"));
     Image imageStar = new Image(getClass().getResourceAsStream("iconStarGold.png"));
     Image weekImg = new Image(getClass().getResourceAsStream("calendar_view_week.png"));
+    ImageView starView = new ImageView(imageStar);
     ImageView weekImgView = new ImageView();
     Connection myConnection = null;
     Statement myStat = null; 
@@ -94,8 +98,12 @@ public class VaqPackOrganizer extends Application {
     RowConstraints row;      
     GridPane grid;
     ObjectProperty<Font> fontTracking;
+    Student loggedInStudent;
     @Override
     public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
+        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
+        myStat = myConnection.createStatement();
+    
         
         //Login Splash Page
         //---------------------------------LOGIN PAGE------------------------------------------------------------------
@@ -134,7 +142,7 @@ public class VaqPackOrganizer extends Application {
         loginHbox.getChildren().add(loginTxt);
         loginBorderPane.setTop(loginHbox);
         loginBorderPane.setCenter(loginGridPane);
-        
+        Student myStud;
         //On loginBtn press
         loginBtn.setOnAction(ae -> {
         
@@ -149,7 +157,7 @@ public class VaqPackOrganizer extends Application {
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
            
-            Student loggedInStudent = getStudent(studentList,uName);
+            loggedInStudent = getStudent(studentList,uName);
            
             
             if(loggedInStudent == null)
@@ -492,9 +500,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
           myFlowPane.getChildren().addAll(myPicker,new Separator(),startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
           okBttn.setOnAction(ax -> {
              try {
-             myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
-             myStat = myConnection.createStatement();
-             
              String createApptsql = "INSERT INTO `test`.`appointments` (`students_studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('1', '2012-12-2', '08:00 AM', '10:00 AM', 'Hells Kitchen', 'Fight Crime');";
              myStat.executeUpdate(createApptsql);
                   } catch (SQLException ex) {
@@ -559,7 +564,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         Label startTime = new Label("Appointment Start Time");
                                         Label endTime = new Label("Appointment End Time");
                                         Label todaysEvents = new Label("Todays Schedule of Events");
-                                        int sid=1;
+                                        
                                         ComboBox apptStartTimeCombo = new ComboBox();
                                         ComboBox apptEndTimeCombo = new ComboBox();
                                         apptStartTimeCombo.setItems(list);
@@ -573,31 +578,26 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         myBorderPane.setPadding(new Insets(11, 12, 13, 14));
                                         Button cancelBttn = new Button ("Cancel");
                                         Button okBttn = new Button("Create Appt.");
-                                        String sql = "SELECT * FROM `test`.`appointments` WHERE studentId = '" + sid + "' AND apptDate = '" + apptDate +"';";
+                                        String sql = "SELECT * FROM `test`.`appointments` WHERE studentId = '" + loggedInStudent.getStudentId() + "' AND apptDate = '" + apptDate +"';";
                                         TableView<Appointment> apptTable = viewAppointments(sql);
                                         VBox myVB = new VBox(10);
                                         myVB.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
                                         myBorderPane.setLeft(myVB);
                                         myBorderPane.setCenter(apptTable);
                                         
-                                        int stId = 1;
                                         okBttn.setOnAction(ax -> {
                                             try {
                                                 
                                                 String apptStartTime= apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
                                                 String apptEndTime= apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
                                                 //This needs to be changed to reflect the currentlu logged studentid
-                                                String createApptsql = ("INSERT INTO `test`.`appointments` (`studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('" + stId + "', '" + apptDate + "', '" + apptStartTime + "', '" + apptEndTime + "', '" +apptLocTxtFld.getText()+ "', '" + apptReasonTxtFld.getText() + "');");
-                                                myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
-                                                myStat = myConnection.createStatement();
+                                                String createApptsql = ("INSERT INTO `test`.`appointments` (`studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('" + loggedInStudent.getStudentId() + "', '" + apptDate + "', '" + apptStartTime + "', '" + apptEndTime + "', '" +apptLocTxtFld.getText()+ "', '" + apptReasonTxtFld.getText() + "');");
                                                 myStat.executeUpdate(createApptsql);
                                                 TableView<Appointment> apptTable2 = viewAppointments(sql);
                                                 myBorderPane.setCenter(apptTable2);
                                             }
                                             catch (SQLException ex) {
                                                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
-                                            
-                                            
                                             }
                                         });
                                         
@@ -630,27 +630,42 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 if(item.isBefore(semesterStart)){
                                 this.setDisable(true);
                                     }
+                                int sId = loggedInStudent.getStudentId();
+                             
+                                String sql ="SELECT * FROM test.appointments WHERE studentId = "+ sId + ";";
+                                ObservableList<Appointment> myAppts = FXCollections.observableArrayList();
                                 
-                                //Show Weekends in blue
-                                /*if (myAppt.appointmentDate.isEqual(item))
-                                {
-                                 setTooltip(new Tooltip(myAppt.appointmentStartTime + "--" + myAppt.appointmentStartTime ));
-                                  ImageView myView = new ImageView(imageStar)  ;
-                                  myView.setFitHeight(10);
-                                  myView.setFitWidth(10);
+                                try {
+                                myAppts = readAppointments(sql);
+                                 } 
+                                catch (SQLException ex) {
+                                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                
+                                for(Appointment myAppt : myAppts){
+                                 String date1 = myAppt.apptDate;
+                                 String date = item.toString();
+                                if(date.equals(date1))
+                               { 
+                                   ImageView myView = new ImageView(imageStar);
+                                  this.setGraphic(myView);
+                                  setTooltip(new Tooltip(
+                                "You're about to stay for days"));
+                                  setStyle("-fx-background-color: #ac521a;");
+                               }
+                                 }
+                               
+                                
                                   
-                                this.setGraphic(myView);
                                 this.setContentDisplay(ContentDisplay.TOP);
-                                }
-                                */
                                 
-                                 DayOfWeek day = DayOfWeek.from(item);
-                                    if (day == DayOfWeek.SATURDAY||day == DayOfWeek.SUNDAY)
+                        
+                                DayOfWeek day = DayOfWeek.from(item);
+                                if (day == DayOfWeek.SATURDAY||day == DayOfWeek.SUNDAY)
                                    {
-                                  
                                   this.setTextFill(Color.BLUE);
                                   setStyle("-fx-background-color: #EEEEEE;");
-                                  }
+                                    }
                                 }
                             };
                         }
@@ -669,63 +684,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         
         
         //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
-    String courseName = "Science";
-    String coursePrefix = "3345";
-    String courseNumber = "03I";
-    String courseDesc = "CSCI";
-    String startIndex= "CSCI";
-    String endIndex= "CSCI";
-    String classRoom= "CSCI";
-    String startTime = "CSCI";
-    String endTime= "CSCI";
-    String firstName= "Corey";
-    String middleName= "Brian";
-    String LastName= "Solana";
-    String passWord= "Pass!234";
-    String userName= "solanac";
-    String studentId= "CS0366882";
-    String emailAddress= "coreysolana@gmail.com";
-    String phoneNumber= "956-243-0434";
-    int privLvl= 0;
-    Professor myProf = new Professor("Emmit","Smith","Brown","emittbrown@gmail.com","9565640987","JHSAJDASD","ASKJDKASD","AKSJDASHD");
-    ArrayList<Course> courseList = new ArrayList<Course>();
-    ArrayList<Student> studentsRegistered = new ArrayList<Student>();
-    ArrayList<Appointment> appointmentList = new ArrayList<Appointment>();
-    
- 
-    //These set how many courses and students we are creatig to play around with
-    int courseCount = 8;
-    int studentCount = 4;
-    //Declaring a myStudent and myCourse object
-    Student myStudent;
-    Course myCourse;
-    
-    //This for loop creates 8 course objects
-    for (int i = 0;i<courseCount;i++)
-    {
-        //Each time the for loop executes it initializes a new Course object
-   //        myCourse = new Course(courseName + " " + i ,coursePrefix,courseNumber,classRoom,startTime,endTime,courseDesc,startIndex,endIndex,myProf,studentsRegistered);   
-        //Add the course to the courses ArrayList
-        //courses.add(myCourse);
-    }
-//This initializes a new student
- for (int i = 0;i<courseCount;i++)
- {
-   //  myStudent = new Student(i + "" + firstName,middleName,LastName,passWord,userName,studentId,emailAddress,phoneNumber, privLvl,courseList,appointmentList);    
-     //students.add(myStudent);
- }
- //Adds course 2 and 3 to student 1
-// students.get(0).getCourseList().add(courses.get(1));
- //students.get(0).getCourseList().add(courses.get(2));
- 
- 
- //Add student 0 to courses registered students
- //courses.get(1).getStudentsRegistered().add(students.get(0));
- //courses.get(2).getStudentsRegistered().add(students.get(0));
-
-// for (int i = 0;i<students.get(0).getCourseList().size();i++)
-  //      System.out.print(students.get(0).getCourseList().get(i).getCourseName() + " " + " \n");
- 
     primaryStage.setTitle("VaqPack");
     primaryStage.setScene(scene);
 
@@ -783,8 +741,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
  public void updateRecords(String m)
     {
     try {
-            myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
-            myStat = myConnection.createStatement();
             myStat.executeUpdate(m);
             } catch (SQLException ex) {
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
@@ -793,8 +749,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     
  public ObservableList readAppointments(String m) throws SQLException
     {
-        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
-        myStat = myConnection.createStatement();
         String sql = "SELECT * FROM `test`.`appointments`";
         myRes = myStat.executeQuery(m);
         ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
@@ -869,8 +823,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
  
  public ObservableList readStudents(String m) throws SQLException
     {
-        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
-        myStat = myConnection.createStatement();
         String sql = "SELECT * FROM `test`.`students`";
         myRes = myStat.executeQuery(m);
         ObservableList<Student> StudentList = FXCollections.observableArrayList();
