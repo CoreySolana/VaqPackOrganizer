@@ -30,6 +30,8 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
@@ -60,6 +62,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -94,29 +97,6 @@ public class VaqPackOrganizer extends Application {
     @Override
     public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
         
-        //Setups DB connection
-        Class.forName("com.mysql.jdbc.Driver"); 
-        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
-        myStat = myConnection.createStatement();
-        String sql = "SELECT * FROM students";
-        String firstName1 = "Roland";
-        String middleName1 = "Tower";
-        String  lastName1 = "DeChaine";
-        String emailAddress1 = "DarkTower";
-        String phoneNumber1 = "6666666";
-        int privLevel1 = 1;
-        String passWord1 = "Testies";
-        String beg = "INSERT INTO `students` (`firstName`, `middleName`, `lastName`, `emailAddress`, `phoneNumber`, `privLevel`,`passWord`)";
-        String createStudentSql = beg + "VALUES ('"+ firstName1+"'," + "'"+middleName1 +"',"+ "'"+lastName1+"'," + "'"+emailAddress1+"'," +"'"+phoneNumber1+"'," + "'"+privLevel1+"'," + "'"+passWord1+"')";
-        
-        myStat.executeUpdate(createStudentSql);
-        myRes = myStat.executeQuery(sql);
-      
-        while(myRes.next())
-        {
-        //System.out.println("First name Is:" + "\t" +  myRes.getString("firstName"));
-        }
-      
         //Login Splash Page
         //---------------------------------LOGIN PAGE------------------------------------------------------------------
         Stage loginStage = new Stage();
@@ -137,12 +117,14 @@ public class VaqPackOrganizer extends Application {
         Label passwordLbl = new Label("Password");
         PasswordField passFld = new PasswordField();
         Button loginBtn = new Button("Login");
+        Button newUBtn = new Button("New User");
         Label messageLbl = new Label();
         loginGridPane.add(userNameLbl, 0, 0);
         loginGridPane.add(userNameTxt, 1, 0);
         loginGridPane.add(passwordLbl, 0, 1);
         loginGridPane.add(passFld, 1, 1);
         loginGridPane.add(loginBtn, 2, 1);
+        loginGridPane.add(newUBtn, 1, 3);
         loginGridPane.add(messageLbl, 1, 2);
         Reflection reflect = new Reflection ();
         reflect.setFraction(.85);
@@ -155,11 +137,129 @@ public class VaqPackOrganizer extends Application {
         
         //On loginBtn press
         loginBtn.setOnAction(ae -> {
-            //To Do stuff here
-           loginStage.close();
+        
+            String uName = userNameTxt.getText();
+            String passWord = passFld.getText();
+            String sql = "SELECT * FROM `test`.`students`";
+            ObservableList<Student> studentList = FXCollections.observableArrayList();
+            
+            try {
+               studentList = readStudents(sql);
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+           
+            Student loggedInStudent = getStudent(studentList,uName);
+           
+            
+            if(loggedInStudent == null)
+            {
+               Alert alert = new Alert(AlertType.ERROR);
+               alert.setTitle("Error Dialog");
+               alert.setHeaderText("Look, an Error Dialog");
+               alert.setContentText("Ooops, there was an error!");
+               alert.showAndWait();
+            }
+            
+            if (loggedInStudent.getPassWord().equals(passWord))
+            {
+            loginStage.close();
+            primaryStage.show();
+            }
+            
+            
+        });
+        
+//---------------------------------New User PAGE------------------------------------------------------------------
+        newUBtn.setOnAction(ae -> {
+
+           Stage newUStage = new Stage();
+        BorderPane newUBorderPane = new BorderPane();
+        Scene newUScene = new Scene(newUBorderPane,500,700);
+        newUStage.setScene(newUScene);
+        newUStage.show();     
+        //Login Page Buttons 
+        newUBorderPane.setPadding(new Insets(10,50,50,50));
+        HBox newUHbox = new HBox();
+        newUHbox.setPadding(new Insets(20,20,20,30));
+        GridPane newUGridPane = new GridPane();
+        newUGridPane.setPadding(new Insets(20,20,20,20));
+        newUGridPane.setHgap(5);
+        newUGridPane.setVgap(5);
+        Label nuserfName = new Label("First Name: ");
+        TextField nuserfNameTxt = new TextField();
+        
+        Label nusermName = new Label("Middle Name: ");
+        TextField nusermNameTxt = new TextField();
+        Label nuserlName = new Label("Last Name: ");
+        TextField nuserlNameTxt = new TextField();
+        Label npasswordLbl = new Label("New Password: ");
+        PasswordField npassFld = new PasswordField();
+        Label nnuserName = new Label("User Name: ");
+        TextField nnuserNameTxt = new TextField();
+        Label nuserIDName = new Label("ID number: ");
+        TextField nuserIDNameTxt = new TextField();
+        Label nusereName = new Label("E-mail: ");
+        TextField nusereNameTxt = new TextField();
+        Label nuserpName = new Label("Phone Number: ");
+        TextField nuserpNameTxt = new TextField();
+        Button nnewUBtn = new Button("Create New User");
+        Label nmessageLbl = new Label();
+       
+        newUGridPane.add(nuserfName, 1, 0);
+        newUGridPane.add(nuserfNameTxt, 1, 1);
+        newUGridPane.add(nusermName, 1, 2);
+        newUGridPane.add(nusermNameTxt, 1, 3);
+        newUGridPane.add(nuserlName, 1, 4);
+        newUGridPane.add(nuserlNameTxt, 1, 5);
+        newUGridPane.add(npasswordLbl, 1, 6);
+        newUGridPane.add(npassFld, 1, 7);
+        newUGridPane.add(nnuserName, 1, 8);
+        newUGridPane.add(nnuserNameTxt, 1, 9);
+        newUGridPane.add(nuserIDName, 1, 10);
+        newUGridPane.add(nuserIDNameTxt, 1, 11);
+         newUGridPane.add(nusereName, 1, 12);
+        newUGridPane.add(nusereNameTxt, 1, 13);
+         newUGridPane.add(nuserpName, 1, 14);
+        newUGridPane.add(nuserpNameTxt, 1, 15);
+        newUGridPane.add(nnewUBtn, 1, 17);
+        newUGridPane.add(nmessageLbl, 1, 18);
+        Reflection reflect1 = new Reflection ();
+        reflect1.setFraction(.85);
+        newUGridPane.setEffect(reflect1);
+        Text newUTxt = new Text("Create New User");
+        newUTxt.setFont(Font.font("Courier New", FontWeight.BOLD, 28));
+        newUHbox.getChildren().add(newUTxt);
+        newUBorderPane.setTop(newUHbox);
+        newUBorderPane.setCenter(newUGridPane);
+        
+        
+        //On nnewUBtn press
+        nnewUBtn.setOnAction(xe -> {
+            
+            
+            String userName = nnuserNameTxt.getText();
+            String passWord = npassFld.getText();
+            String firstName = nuserfNameTxt.getText();
+            String middleName =  nusermName.getText();
+            String lastName = nuserlNameTxt.getText();
+            String emailAddress = nusereNameTxt.getText();
+            String phoneNumber = nuserpNameTxt.getText();
+            
+            String newUserSql = "INSERT INTO `test`.`students` (`userName`, `passWord`, `firstName`, `middleName`, `lastName`, `phoneNumber`, `emailAddress`, `privLevel`) VALUES ('" + userName + "', '"+ passWord + "', '" + firstName + "', '" + middleName + "', '" + lastName + "', '" + emailAddress + "', '" + phoneNumber + "', '0');";
+            updateRecords(newUserSql);
+            newUStage.close();
             primaryStage.show();
             
         });
+        });
+        
+
+//-----------------------------New User Window------------------------------------------------------------------
+        
+        
+        
+        
         //-----------------------------END OF LOGIN PAGE------------------------------------------------------------------
         
         BorderPane borderPane = new BorderPane();
@@ -448,16 +548,18 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 this.setOnMouseClicked(a -> {
                                     
                                         Stage apptStage = new Stage();
-                                        FlowPane myFlowPane = new FlowPane();
-                                        Scene apptScene = new Scene(myFlowPane,300,400);
+                                        BorderPane myBorderPane = new BorderPane();
+                                        Scene apptScene = new Scene(myBorderPane,500,500);
                                         TimeTicks timeTicks = new TimeTicks(30);
                                         timeTicks.generateTicks();
                                         String[] timeIntervals= timeTicks.getTimeTicksStrings();
                                         ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
+                                        
+                                        
                                         Label startTime = new Label("Appointment Start Time");
                                         Label endTime = new Label("Appointment End Time");
                                         Label todaysEvents = new Label("Todays Schedule of Events");
-                                       
+                                        int sid=1;
                                         ComboBox apptStartTimeCombo = new ComboBox();
                                         ComboBox apptEndTimeCombo = new ComboBox();
                                         apptStartTimeCombo.setItems(list);
@@ -468,17 +570,20 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         TextField apptLocTxtFld = new TextField();
                                         TextField apptReasonTxtFld = new TextField();
                                         String apptDate = item.toString();
-                                        myFlowPane.setPadding(new Insets(11, 12, 13, 14));
-                                        myFlowPane.setHgap(20);
-                                        myFlowPane.setVgap(20);
+                                        myBorderPane.setPadding(new Insets(11, 12, 13, 14));
                                         Button cancelBttn = new Button ("Cancel");
                                         Button okBttn = new Button("Create Appt.");
-                                        TableView<Appointment> apptTable = viewAppointments();
-                                        myFlowPane.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn,apptTable);    
+                                        String sql = "SELECT * FROM `test`.`appointments` WHERE studentId = '" + sid + "' AND apptDate = '" + apptDate +"';";
+                                        TableView<Appointment> apptTable = viewAppointments(sql);
+                                        VBox myVB = new VBox(10);
+                                        myVB.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
+                                        myBorderPane.setLeft(myVB);
+                                        myBorderPane.setCenter(apptTable);
+                                        
                                         int stId = 1;
                                         okBttn.setOnAction(ax -> {
                                             try {
-                                        
+                                                
                                                 String apptStartTime= apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
                                                 String apptEndTime= apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
                                                 //This needs to be changed to reflect the currentlu logged studentid
@@ -486,9 +591,13 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                                 myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
                                                 myStat = myConnection.createStatement();
                                                 myStat.executeUpdate(createApptsql);
-                                                }
+                                                TableView<Appointment> apptTable2 = viewAppointments(sql);
+                                                myBorderPane.setCenter(apptTable2);
+                                            }
                                             catch (SQLException ex) {
                                                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                                            
+                                            
                                             }
                                         });
                                         
@@ -628,13 +737,13 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     }
 
  
- public TableView viewAppointments(){
+ public TableView viewAppointments(String m){
  
  
             ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
             TableView<Appointment> myTableView = new TableView<Appointment>();
             try {
-                appointmentList = readAppointments();
+                appointmentList = readAppointments(m);
             } catch (SQLException ex) {
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -671,13 +780,23 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
  
  }
  
- 
- public ObservableList readAppointments() throws SQLException
+ public void updateRecords(String m)
+    {
+    try {
+            myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
+            myStat = myConnection.createStatement();
+            myStat.executeUpdate(m);
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+    }
+    
+ public ObservableList readAppointments(String m) throws SQLException
     {
         myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
         myStat = myConnection.createStatement();
         String sql = "SELECT * FROM `test`.`appointments`";
-        myRes = myStat.executeQuery(sql);
+        myRes = myStat.executeQuery(m);
         ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
         while(myRes.next())
         {
@@ -693,6 +812,89 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         }
         return appointmentList;
     }
+
+ public Student getStudent(ObservableList<Student> list,String m)
+    {
+        for(Student myStudent :list)
+        {
+            if(myStudent.getUserName().equals(m))
+                return myStudent;
+        }
+        return null;
+    }
+ 
+ 
+ public TableView viewStudents(String m){
+ 
+ 
+            ObservableList<Student> StudentList = FXCollections.observableArrayList();
+            TableView<Student> myTableView = new TableView<Student>();
+            try {
+                StudentList = readStudents(m);
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            myTableView.setItems(StudentList);
+            
+            TableColumn<Student,Integer> studentId= new TableColumn<>("studentId");
+            studentId.setCellValueFactory(new PropertyValueFactory<Student,Integer>("StudentId"));
+            
+            TableColumn<Student,String> userName = new TableColumn<>("userName");
+	    userName.setCellValueFactory(new PropertyValueFactory<Student,String>("userName"));
+            
+	    TableColumn<Student,String> passWord = new TableColumn<>("passWord");
+	    passWord.setCellValueFactory(new PropertyValueFactory<Student,String>("passWord"));
+
+	    TableColumn<Student,String> firstName = new TableColumn<>("firstName");
+            firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+           
+            TableColumn<Student,String> middleName = new TableColumn<>("middleName");
+            middleName.setCellValueFactory(new PropertyValueFactory<>("middleName"));
+            
+            TableColumn<Student,String> lastName = new TableColumn<>("lastName");
+            lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+            
+            TableColumn<Student,String> emailAddress = new TableColumn<>("emailAddress");
+            emailAddress.setCellValueFactory(new PropertyValueFactory<>("emailAddress"));
+            
+            TableColumn<Student,String> phoneNumber = new TableColumn<>("phoneNumber");
+            phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
+
+            myTableView.getColumns().setAll(studentId,userName,passWord,firstName,middleName,lastName,emailAddress,phoneNumber);
+
+            return myTableView;
+ 
+ }
+ 
+ 
+ public ObservableList readStudents(String m) throws SQLException
+    {
+        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");   
+        myStat = myConnection.createStatement();
+        String sql = "SELECT * FROM `test`.`students`";
+        myRes = myStat.executeQuery(m);
+        ObservableList<Student> StudentList = FXCollections.observableArrayList();
+        while(myRes.next())
+        {
+	    int studentId = myRes.getInt("studentId");
+	    String userName = myRes.getString("userName");
+	    String passWord = myRes.getString("passWord");
+            String firstName = myRes.getString("firstName");
+            String middleName = myRes.getString("middleName");
+            String lastName = myRes.getString("lastName");
+            String emailAddress = myRes.getString("emailAddress"); 
+            String phoneNumber = myRes.getString("phoneNumber");
+            int privLevel = myRes.getInt("privLevel");
+            Student myStudent = new Student(studentId,userName,passWord,firstName,middleName,lastName,emailAddress,phoneNumber,privLevel);
+            StudentList.add(myStudent);
+        }
+        return StudentList;
+    }
+ 
+ 
+ 
+ 
+ 
  
 public void addTimeToGrid(Object timeIncrement)
 {
@@ -738,13 +940,6 @@ public void addTimeToGrid(Object timeIncrement)
         }
 grid.setGridLinesVisible(true);      
     }
-
-
-/*students.get(0).getCourseList().add(courses.get(1));
-//Register students in course 0
-courses.get(0).getStudentsRegistered().add(students.get(0));
-courses.get(0).getStudentsRegistered().add(students.get(1));
-*///courses.get(0).getStudentsRegistered().add(students.get(2));
  
  }
 
