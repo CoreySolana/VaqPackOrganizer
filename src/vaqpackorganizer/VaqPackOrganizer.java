@@ -26,6 +26,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -100,7 +102,7 @@ public class VaqPackOrganizer extends Application {
     @Override
     public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
 //Setups Connection to database
-        myConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","Pass!234");
+        myConnection = DriverManager.getConnection("jdbc:mysql://127.0.0.1/test","root","rootb1"); /////
         myStat = myConnection.createStatement();
 
         
@@ -110,6 +112,7 @@ public class VaqPackOrganizer extends Application {
         Scene loginScene = new Scene(loginBorderPane,400,400);
         loginStage.setScene(loginScene);
         loginStage.show();
+        
         loginBorderPane.setPadding(new Insets(10,50,50,50));
         HBox loginHbox = new HBox();
         loginHbox.setPadding(new Insets(20,20,20,30));
@@ -498,8 +501,36 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             }
         
         Button apptBttn1 = new Button("Create Appointment");
+        Button emailBtn = new Button("Send Email");
         //monthlyHbox.getChildren().add(apptBttn);
-        monthlyHbox2.getChildren().add(apptBttn1);
+       // monthlyHbox2.getChildren().add(apptBttn1);
+        monthlyHbox2.getChildren().addAll(apptBttn1,emailBtn);
+        
+        //email
+         emailBtn.setOnAction(new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(ActionEvent event) {
+                SimpleEmail ee = new SimpleEmail();
+                try {
+                    Stage estage = new Stage();
+                    
+                    ee.start(estage);
+                    
+                    
+                    
+                    
+                    
+                    
+                    //System.out.println("Hello World!");
+                } catch (Exception ex) {
+                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                
+            }
+        });
+        
         
  //This sets up the date for the semester for labeling later
        LocalDate semesterStart = LocalDate.of(2016,1,15);
