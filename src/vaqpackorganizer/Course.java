@@ -13,72 +13,33 @@ import java.util.ArrayList;
  * @author Corey
  */
 public class Course {
-    
+    private int courseId;
     private String courseName;
-    private String courseId;
-    private String courseNumber;
     private String classRoom;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private String startDate;
     private String startTime;
     private String endTime;
     private String courseDesc;
-    private String profId;
+    private int profId;
 
-    public Course(String courseName, String courseId, String courseNumber, String classRoom, LocalDate startDate, LocalDate endDate, String startTime, String endTime, String courseDesc, String profId) {
-        this.courseName = courseName;
+    public Course(int courseId, String courseName, String classRoom, String startDate, String startTime, String endTime, String courseDesc, int profId) {
         this.courseId = courseId;
-        this.courseNumber = courseNumber;
+        this.courseName = courseName;
         this.classRoom = classRoom;
         this.startDate = startDate;
-        this.endDate = endDate;
         this.startTime = startTime;
         this.endTime = endTime;
         this.courseDesc = courseDesc;
         this.profId = profId;
     }
-    
 
-    
-/* Will be the button for opening the syllabus
-  button.setOnAction(new EventHandler<ActionEvent>() {
-   @Override
-   public void handle(ActionEvent arg0) {
-    // TODO Auto-generated method stub
-    File pdfFile = new File("C:\\hai\\123.csv");
-    if (pdfFile.exists())
-    {
-     if (Desktop.isDesktopSupported())
-     {
-      try
-      {
-       Desktop.getDesktop().open(pdfFile);
-      }
-      catch (IOException e)
-      {
-      
-       e.printStackTrace();
-      }
-     }
-     else
-      {
-       System.out.println("Awt Desktop is not supported!");
-      }
+    public int getCourseId() {
+        return courseId;
     }
-    
-    else
-    {
-     System.out.println("File is not exists!");
+
+    public void setCourseId(int courseId) {
+        this.courseId = courseId;
     }
-  
-   }
-  });
-  
- }
-}
-
-
-*/    
 
     public String getCourseName() {
         return courseName;
@@ -86,22 +47,6 @@ public class Course {
 
     public void setCourseName(String courseName) {
         this.courseName = courseName;
-    }
-
-    public String getCourseId() {
-        return courseId;
-    }
-
-    public void setCourseId(String courseId) {
-        this.courseId = courseId;
-    }
-
-    public String getCourseNumber() {
-        return courseNumber;
-    }
-
-    public void setCourseNumber(String courseNumber) {
-        this.courseNumber = courseNumber;
     }
 
     public String getClassRoom() {
@@ -112,20 +57,12 @@ public class Course {
         this.classRoom = classRoom;
     }
 
-    public LocalDate getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
+    public void setStartDate(String startDate) {
         this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
     }
 
     public String getStartTime() {
@@ -152,13 +89,12 @@ public class Course {
         this.courseDesc = courseDesc;
     }
 
-    public String getProfId() {
+    public int getProfId() {
         return profId;
     }
 
-    public void setProfId(String profId) {
+    public void setProfId(int profId) {
         this.profId = profId;
     }
-    
     
 }

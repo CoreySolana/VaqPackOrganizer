@@ -719,8 +719,9 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                     }
                 });
             });
-       
-        //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
+//-------------------------------------------------------------------END NEW COURSE----------------------------------------------------------------------------
+        
+//------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     primaryStage.setTitle("VaqPack");
     primaryStage.setScene(scene);
     }
@@ -863,6 +864,68 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             StudentList.add(myStudent);
         }
         return StudentList;
+    }
+
+ 
+ public TableView viewCourses(String m){
+            ObservableList<Course> CourseList = FXCollections.observableArrayList();
+            TableView<Course> myTableView = new TableView<Course>();
+            try {
+                CourseList = readCourses(m);
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            myTableView.setItems(CourseList);
+            
+            TableColumn<Course,Integer> courseId= new TableColumn<>("courseId");
+            courseId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("courseId"));
+            
+            TableColumn<Course,String> courseName = new TableColumn<>("courseName");
+	    courseName.setCellValueFactory(new PropertyValueFactory<Course,String>("courseName"));
+            
+	    TableColumn<Course,String> classRoom = new TableColumn<>("classRoom");
+	    classRoom.setCellValueFactory(new PropertyValueFactory<Course,String>("classRoom"));
+
+	    TableColumn<Course,String> startDate = new TableColumn<>("startDate");
+            startDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+           
+            TableColumn<Course,String> startTime = new TableColumn<>("startTime");
+            startTime.setCellValueFactory(new PropertyValueFactory<>("startTime"));
+            
+            TableColumn<Course,String> endTime = new TableColumn<>("endTime");
+            endTime.setCellValueFactory(new PropertyValueFactory<>("endTime"));
+            
+            TableColumn<Course,String> courseDesc = new TableColumn<>("courseDesc");
+            courseDesc.setCellValueFactory(new PropertyValueFactory<>("courseDesc"));
+                     
+            TableColumn<Course,Integer> profId= new TableColumn<>("profId");
+            profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
+            
+
+            myTableView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
+
+            return myTableView;
+ 
+ }
+  public ObservableList readCourses(String m) throws SQLException
+    {
+        String sql = "SELECT * FROM `test`.`students`";
+        myRes = myStat.executeQuery(m);
+        ObservableList<Course> CourseList = FXCollections.observableArrayList();
+        while(myRes.next())
+        {
+	    int courseId = myRes.getInt("courseId");
+	    String courseName = myRes.getString("courseName");
+	    String classRoom = myRes.getString("classRoom");
+            String startDate = myRes.getString("startDate");
+            String startTime = myRes.getString("startTime");
+            String endTime = myRes.getString("endTime");
+            String courseDesc = myRes.getString("courseDesc"); 
+            int profId = myRes.getInt("profId");
+            Course myCourse = new Course(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
+            CourseList.add(myCourse);
+        }
+        return CourseList;
     }
 
  public void addTimeToGrid(Object timeIncrement)
