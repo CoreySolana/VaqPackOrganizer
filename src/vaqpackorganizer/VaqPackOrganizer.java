@@ -83,12 +83,14 @@ public class VaqPackOrganizer extends Application {
     Image weekImg = new Image(getClass().getResourceAsStream("calendar_view_week.png"));
     ImageView starView = new ImageView(imageStar);
     ImageView weekImgView = new ImageView();
+    
     Connection myConnection = null;
     Statement myStat = null; 
     ResultSet myRes = null;
     Button weeklyScheduleBttn ;
     Button monthlyScheduleBttn;
     Button schoolInfoBttn;
+    Button newCourseBttn = new Button("New Course");
     ToolBar toolBar; 
     ColumnConstraints column;      
     RowConstraints row;      
@@ -440,7 +442,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         
  //-------------------------------------------------------MONTH VIEW-----------------------------------------------------------------------------------------
         monthlyScheduleBttn.setOnAction((ae) -> {
-        borderPane.setBottom(null);
+        
+        borderPane.setBottom(newCourseBttn);
         HBox monthlyHbox = new HBox();
         HBox monthlyHbox2 = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
@@ -464,8 +467,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
           ComboBox apptEndTimeCombo = new ComboBox();
           apptStartTimeCombo.setItems(list);
           apptEndTimeCombo.setItems(list);
-       
-          
           Label apptDateLbl = new Label(" Select Date");
           Label apptLocLbl = new Label("Input Location");
           Label apptReasonLbl = new Label("Input Reason");
@@ -479,7 +480,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
           Button submitNewUserBttn = new Button("Create Appt.");
           myFlowPane.getChildren().addAll(apptDateLbl,myPicker,startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,submitNewUserBttn, cancelBttn);    
           
-          //---------------------------------------------------------
+          //---------------------------------------------------------Create NEW User--------------------------------------------------------------------
           submitNewUserBttn.setOnAction(ax -> {
              try {
              String createApptsql = "";
@@ -504,7 +505,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
        LocalDate semesterStart = LocalDate.of(2016,1,15);
        LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
        
-        //DatePicker setup  
+//------------------------------------------------------------DatePicker Setup-----------------------------------------------------------------------------
        DatePicker datePicker = new DatePicker();
        //DayCellFactory allows modification of cells in datePicker
         Callback<DatePicker,DateCell> dayCellFactory1 = 
@@ -598,26 +599,19 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         });
                                         
                                         cancelBttn.setOnAction(as -> {
-                                        
                                         apptStage.close();
-                                        
                                         });
-                                        
                                         apptStage.setScene(apptScene);
                                         apptStage.show();
-                                    
                                 });
-                                
                                 this.setOnMouseEntered(a -> {
                                 this.setScaleX(1.1);
                                 this.setScaleY(1.1);
-                                
                                 });
                                 
                                 this.setOnMouseExited(a -> {
                                 this.setScaleX(1);
                                 this.setScaleY(1);
-                                
                                 });
                                 //Disable all dates before and after semester start and end
                                 if(item.isAfter(semesterEnd)){
@@ -656,9 +650,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                   setStyle("-fx-background-color: #ac521a;");
                                }
                                  }
-                               
-                                
-                                  
                                 this.setContentDisplay(ContentDisplay.TOP);
                                 
                         
@@ -683,14 +674,55 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
        borderPane.setLeft(monthlyHbox);
        borderPane.setRight(monthlyHbox2);
         });
+        //-----------------------------------------------------------New Course Button-------------------------------------------------
         
+        newCourseBttn.setOnAction(af -> {
+        TimeTicks timeTicks = new TimeTicks(30);
+        timeTicks.generateTicks();
+        String[] timeIntervals= timeTicks.getTimeTicksStrings();
+        ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
+        ComboBox apptStartTimeCombo = new ComboBox();
+        ComboBox apptEndTimeCombo = new ComboBox();
+        apptStartTimeCombo.setItems(list);
+        apptEndTimeCombo.setItems(list);
+        Label courseSplash = new Label("Create a new course");
+        Label courseNameLbl = new Label("Enter Course Name");
+        Label courseClassLbl = new Label("Enter Class Room");
+        Label courseStartDateLbl = new Label("Pick Start Date");
+        Label courseStartTimeLbl = new Label("Pick Start Time");
+        Label courseEndTimeLbl = new Label("Pick End Time");
+        Label courseDescriptionLbl = new Label("Enter Course Description");
+        Label courseProfLbl = new Label("Choose Professor");
+        Button courseSubmit = new Button ("Create Course");
+        TextField courseNameTxt = new TextField();
+        TextField courseClassTxt = new TextField();
+        DatePicker startDatePicker = new DatePicker();
+        TextField courseDescriptionTxt = new TextField();
+        FlowPane myFlowPane = new FlowPane();
+        myFlowPane.getChildren().addAll(courseSplash,courseNameLbl,courseNameTxt,courseClassLbl,courseClassTxt,courseStartDateLbl,startDatePicker,courseStartTimeLbl,apptStartTimeCombo,courseEndTimeLbl,apptEndTimeCombo,courseDescriptionLbl,courseDescriptionTxt,courseSubmit);
+        borderPane.setRight(myFlowPane);
+        courseSubmit.setOnAction(ag -> {
+        String courseName = courseNameTxt.getText();
+        String courseLocation = courseClassTxt.getText();
+        String startDate =  startDatePicker.getValue().toString();
+        String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
+        String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
+        String courseDescription = courseDescriptionTxt.getText();
+        //Need to grab profId from a table
+        int profId = 2;
+        String mySql = "INSERT INTO `test`.`courses` (`courseName`, `classRoom`, `startDate`, `startTime`, `endTime`, `courseDesc`, `profId`) VALUES ('" + courseName + "', '" + courseLocation + "', '" + startDate + "', '" + courseStartTime + "', '" + courseEndTime + "', '" + courseDescription + "', '2');";
         
+             try {  
+                myStat.executeUpdate(mySql);
+                    } catch (SQLException ex) {
+                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                });
+            });
+       
         //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     primaryStage.setTitle("VaqPack");
     primaryStage.setScene(scene);
-
- 
- 
     }
  public static void main(String[] args) {
            launch(args);
@@ -698,8 +730,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
 
  
  public TableView viewAppointments(String m){
- 
- 
             ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
             TableView<Appointment> myTableView = new TableView<Appointment>();
             try {
@@ -731,13 +761,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
 	    apptReason.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptReason"));
 
             myTableView.getColumns().setAll(appointmentId,studentId,apptDate,apptStartTime,apptEndTime,apptLoc,apptReason);
-
-
-
-
- 
-            return myTableView;
- 
+           return myTableView;
  }
  
  public void updateRecords(String m)
@@ -778,8 +802,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         }
         return null;
     }
- 
- 
  public TableView viewStudents(String m){
  
  
@@ -821,8 +843,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             return myTableView;
  
  }
- 
- 
  public ObservableList readStudents(String m) throws SQLException
     {
         String sql = "SELECT * FROM `test`.`students`";
@@ -844,13 +864,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         }
         return StudentList;
     }
- 
- 
- 
- 
- 
- 
-public void addTimeToGrid(Object timeIncrement)
+
+ public void addTimeToGrid(Object timeIncrement)
 {
         grid.setGridLinesVisible(false);
         int time = Integer.parseInt(timeIncrement.toString());
