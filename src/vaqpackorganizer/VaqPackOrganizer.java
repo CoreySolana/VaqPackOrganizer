@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import static java.time.temporal.ChronoUnit.DAYS;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -97,6 +98,7 @@ public class VaqPackOrganizer extends Application {
     Button schoolInfoBttn;
     Button newCourseBttn = new Button("New Course");
     Button regBttn = new Button("Reg for Course");
+    Button myCoursesBttn = new Button("My Courses");
     ToolBar toolBar; 
     ColumnConstraints column;      
     RowConstraints row;      
@@ -182,9 +184,10 @@ public class VaqPackOrganizer extends Application {
                alert.setContentText("Please retry");
                alert.showAndWait();
                 }
-            
-        
             });
+        
+        
+        
         
 //----------------------------------------------Preloading-----------------------------------------------------------
         //this needs to grab stuff from the registered students 
@@ -463,9 +466,65 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         borderPane.setCenter(null);
         
         HBox buttonBox = new HBox(10);
-        buttonBox.getChildren().addAll(regBttn,newCourseBttn);
+        buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn);
         
         borderPane.setLeft(buttonBox);
+        
+        
+        
+        
+        
+        
+        //-----------------------------------------------------------View My Courses---------------------------------------------
+        myCoursesBttn.setOnAction(as -> {
+        String sql = ("SELECT * FROM test.registeredstudents WHERE studentId =" + loggedInStudent.getStudentId() + ";");
+        ObservableList<Registered> myRegCourses = FXCollections.observableArrayList();
+        ObservableList<Course> myCourses = FXCollections.observableArrayList();
+        TableView<Course> myCourseView = new TableView<Course>();
+        
+        try {
+           myRegCourses = readRegCourses(sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+         for (int i = 0; i < myRegCourses.size(); i++) {
+             System.out.println(myRegCourses.get(i).getCourseId());
+             
+             int courseId = myRegCourses.get(i).getCourseId();
+                String sql2 = ("SELECT * FROM `test`.`courses` WHERE courseId =" + courseId + ";");
+                ObservableList<Course> holder= FXCollections.observableArrayList();
+                    try {
+                        holder = readCourses(sql2);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                myCourses = FXCollections.concat(myCourses,holder);
+             }
+            myCourseView.setItems(myCourses);
+            
+            TableColumn<Course,Integer> courseId= new TableColumn<>("courseId");
+            courseId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("courseId"));
+            TableColumn<Course,String> courseName = new TableColumn<>("courseName");
+	    courseName.setCellValueFactory(new PropertyValueFactory<Course,String>("courseName"));
+            TableColumn<Course,String> classRoom = new TableColumn<>("classRoom");
+	    classRoom.setCellValueFactory(new PropertyValueFactory<Course,String>("classRoom"));
+            TableColumn<Course,String> startDate = new TableColumn<>("startDate");
+            startDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+            TableColumn<Course,String> startTime = new TableColumn<>("startTime");
+            startTime.setCellValueFactory(new PropertyValueFactory<>("startTime"));
+            TableColumn<Course,String> endTime = new TableColumn<>("endTime");
+            endTime.setCellValueFactory(new PropertyValueFactory<>("endTime"));
+            TableColumn<Course,String> courseDesc = new TableColumn<>("courseDesc");
+            courseDesc.setCellValueFactory(new PropertyValueFactory<>("courseDesc"));
+            TableColumn<Course,Integer> profId= new TableColumn<>("profId");
+            profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
+            myCourseView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
+
+            
+            borderPane.setCenter(myCourseView);
+        });
         
          //------------------------------------------------------------Register For Course Button---------------------------------------
         
@@ -889,40 +948,29 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
  public static void main(String[] args) {
            launch(args);
     }
-
- 
  public TableView viewAppointments(String m){
-         
      ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
             try {
                 appointmentList = readAppointments(m);
             } catch (SQLException ex) {
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
             TableView<Appointment> myTableView = new TableView<Appointment>();
             myTableView.setItems(appointmentList);
             TableColumn<Appointment,Integer> appointmentId= new TableColumn<>("appointmentId");
             appointmentId.setCellValueFactory(new PropertyValueFactory<Appointment,Integer>("appointmentId"));
-            
 	    TableColumn<Appointment,Integer> studentId= new TableColumn<>("studentId");
             studentId.setCellValueFactory(new PropertyValueFactory<Appointment,Integer>("studentId"));
-
             TableColumn<Appointment,String> apptDate = new TableColumn<>("apptDate");
 	    apptDate.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptDate"));
-            
 	    TableColumn<Appointment,String> apptStartTime = new TableColumn<>("apptStartTime");
 	    apptStartTime.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptStartTime"));
-
 	    TableColumn<Appointment,String> apptEndTime = new TableColumn<>("apptEndTime");
 	    apptEndTime.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptEndTime"));
-
 	    TableColumn<Appointment,String> apptLoc = new TableColumn<>("apptLoc");
 	    apptLoc.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptLoc"));
-
 	    TableColumn<Appointment,String> apptReason = new TableColumn<>("apptReason");
 	    apptReason.setCellValueFactory(new PropertyValueFactory<Appointment,String>("apptReason"));
-
             myTableView.getColumns().setAll(appointmentId,studentId,apptDate,apptStartTime,apptEndTime,apptLoc,apptReason);
            return myTableView;
  }
@@ -935,7 +983,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
     }
-    
  public ObservableList readAppointments(String m) throws SQLException
     {
         String sql = "SELECT * FROM `test`.`appointments`";
@@ -974,35 +1021,24 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
             myTableView.setItems(StudentList);
-            
             TableColumn<Student,Integer> studentId= new TableColumn<>("studentId");
             studentId.setCellValueFactory(new PropertyValueFactory<Student,Integer>("StudentId"));
-            
             TableColumn<Student,String> userName = new TableColumn<>("userName");
 	    userName.setCellValueFactory(new PropertyValueFactory<Student,String>("userName"));
-            
 	    TableColumn<Student,String> passWord = new TableColumn<>("passWord");
 	    passWord.setCellValueFactory(new PropertyValueFactory<Student,String>("passWord"));
-
 	    TableColumn<Student,String> firstName = new TableColumn<>("firstName");
             firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-           
             TableColumn<Student,String> middleName = new TableColumn<>("middleName");
             middleName.setCellValueFactory(new PropertyValueFactory<>("middleName"));
-            
             TableColumn<Student,String> lastName = new TableColumn<>("lastName");
             lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-            
             TableColumn<Student,String> emailAddress = new TableColumn<>("emailAddress");
             emailAddress.setCellValueFactory(new PropertyValueFactory<>("emailAddress"));
-            
             TableColumn<Student,String> phoneNumber = new TableColumn<>("phoneNumber");
             phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
-
             myTableView.getColumns().setAll(studentId,userName,passWord,firstName,middleName,lastName,emailAddress,phoneNumber);
-
             return myTableView;
- 
  }
  public ObservableList readStudents(String m) throws SQLException
     {
@@ -1025,9 +1061,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         }
         return StudentList;
     }
-
- 
- public TableView viewCourses(String m){
+public TableView viewCourses(String m){
             ObservableList<Course> CourseList = FXCollections.observableArrayList();
             TableView<Course> myTableView = new TableView<Course>();
             try {
@@ -1036,38 +1070,63 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
             myTableView.setItems(CourseList);
-            
             TableColumn<Course,Integer> courseId= new TableColumn<>("courseId");
             courseId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("courseId"));
-            
             TableColumn<Course,String> courseName = new TableColumn<>("courseName");
 	    courseName.setCellValueFactory(new PropertyValueFactory<Course,String>("courseName"));
-            
-	    TableColumn<Course,String> classRoom = new TableColumn<>("classRoom");
+            TableColumn<Course,String> classRoom = new TableColumn<>("classRoom");
 	    classRoom.setCellValueFactory(new PropertyValueFactory<Course,String>("classRoom"));
-
-	    TableColumn<Course,String> startDate = new TableColumn<>("startDate");
+            TableColumn<Course,String> startDate = new TableColumn<>("startDate");
             startDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
-           
             TableColumn<Course,String> startTime = new TableColumn<>("startTime");
             startTime.setCellValueFactory(new PropertyValueFactory<>("startTime"));
-            
             TableColumn<Course,String> endTime = new TableColumn<>("endTime");
             endTime.setCellValueFactory(new PropertyValueFactory<>("endTime"));
-            
             TableColumn<Course,String> courseDesc = new TableColumn<>("courseDesc");
             courseDesc.setCellValueFactory(new PropertyValueFactory<>("courseDesc"));
-                     
             TableColumn<Course,Integer> profId= new TableColumn<>("profId");
             profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
-            
-
             myTableView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
 
             return myTableView;
+  }
+
+public TableView viewRegCourses(String m){
+            ObservableList<Registered> registeredList = FXCollections.observableArrayList();
+            TableView<Registered> myTableView = new TableView<Registered>();
+            try {
+                registeredList = readRegCourses(m);
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            myTableView.setItems(registeredList);
+            TableColumn<Registered,Integer> regId= new TableColumn<>("regId");
+            regId.setCellValueFactory(new PropertyValueFactory<Registered,Integer>("courseId"));
+            TableColumn<Registered,Integer> courseId= new TableColumn<>("courseId");
+            courseId.setCellValueFactory(new PropertyValueFactory<Registered,Integer>("courseId"));
+            TableColumn<Registered,Integer> studentId= new TableColumn<>("studentId");
+            regId.setCellValueFactory(new PropertyValueFactory<Registered,Integer>("studentId"));
+            myTableView.getColumns().setAll(regId,courseId,studentId);
+            return myTableView;
+  }
+
+  public ObservableList readRegCourses(String m) throws SQLException
+    {
+        
+        myRes = myStat.executeQuery(m);
+        ObservableList<Registered> registeredList = FXCollections.observableArrayList();
+        while(myRes.next())
+        {
+	    int regId = myRes.getInt("regId");
+            int courseId = myRes.getInt("courseId");
+	    int studentId = myRes.getInt("studentId");
+            Registered myRegistered = new Registered(regId,courseId,studentId);
+            registeredList.add(myRegistered);
+        }
+        return registeredList;
+    }
  
- }
-  public ObservableList readCourses(String m) throws SQLException
+ public ObservableList readCourses(String m) throws SQLException
     {
         String sql = "SELECT * FROM `test`.`students`";
         myRes = myStat.executeQuery(m);
@@ -1100,6 +1159,8 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
     DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDate myDate = LocalDate.parse(date,formatter);
 
+    String regString = ("INSERT INTO `test`.`registeredstudents` (`courseId`, `studentId`) VALUES ('"+ course.getCourseId() + "', '"+ loggedInStudent.getStudentId() +"');");    
+    updateRecords(regString);
     for (int j = 0; j <numDays/7 + 1; j++) 
         {
         Appointment myAppt = new Appointment(j,loggedInStudent.getStudentId(),myDate.toString(),course.getStartTime(),course.getEndTime(),course.getClassRoom(),"Class Appointment");
@@ -1110,6 +1171,7 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
        String sql = ("INSERT INTO `test`.`appointments` (`studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('" + loggedInStudent.getStudentId() + "', '" + appointmentList.get(i).apptDate + "', '" + appointmentList.get(i).apptStartTime + "', '" + appointmentList.get(i).apptEndTime + "', '" +appointmentList.get(i).apptLoc+ "', '" + appointmentList.get(i).apptReason + "');");
        updateRecords(sql);
     }
+    
 }
 
   public void addTimeToGrid(Object timeIncrement)
