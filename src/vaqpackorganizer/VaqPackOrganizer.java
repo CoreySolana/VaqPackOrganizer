@@ -14,8 +14,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import static java.time.Period.between;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import static java.time.temporal.ChronoUnit.DAYS;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +47,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -93,6 +96,7 @@ public class VaqPackOrganizer extends Application {
     Button monthlyScheduleBttn;
     Button schoolInfoBttn;
     Button newCourseBttn = new Button("New Course");
+    Button regBttn = new Button("Reg for Course");
     ToolBar toolBar; 
     ColumnConstraints column;      
     RowConstraints row;      
@@ -102,8 +106,8 @@ public class VaqPackOrganizer extends Application {
     @Override
     public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
 //Setups Connection to database
-        myConnection = DriverManager.getConnection("jdbc:mysql://127.0.0.1/test","root","rootb1"); /////
-        myStat = myConnection.createStatement();
+    myConnection = DriverManager.getConnection("jdbc:mysql://127.0.0.1/test","root","Pass!234"); /////
+    myStat = myConnection.createStatement();
 
         
 //--------------------------------- START LOGIN PAGE------------------------------------------------------------------
@@ -155,10 +159,7 @@ public class VaqPackOrganizer extends Application {
             } catch (SQLException ex) {
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
-           
-            
             loggedInStudent = getStudent(studentList,uName);
-                     
             if(loggedInStudent != null)
             {
                 if (loggedInStudent.getPassWord().equals(passWord))
@@ -166,7 +167,6 @@ public class VaqPackOrganizer extends Application {
             loginStage.close();
             primaryStage.show();
                 }
-            
                 else{ 
             Alert alert = new Alert(AlertType.ERROR);
                alert.setTitle("Access Denied");
@@ -182,7 +182,12 @@ public class VaqPackOrganizer extends Application {
                alert.setContentText("Please retry");
                alert.showAndWait();
                 }
+            
+        
             });
+        
+//----------------------------------------------Preloading-----------------------------------------------------------
+        //this needs to grab stuff from the registered students 
         
 //---------------------------------New User Creation------------------------------------------------------------------
         newUBtn.setOnAction(ae -> {
@@ -259,6 +264,7 @@ public class VaqPackOrganizer extends Application {
             });
         });
 //-----------------------------END OF LOGIN PAGE------------------------------------------------------------------
+        
 //-----------------------------START OF SPLASH PAGE---------------------------------------------------------------        
         BorderPane borderPane = new BorderPane();
         Scene scene = new Scene(borderPane, 1200, 650);
@@ -272,7 +278,7 @@ public class VaqPackOrganizer extends Application {
         weekImgView.smoothProperty();
         
         //Create togglebuttons
-        ToggleButton userManagerBttn = new ToggleButton("User Management", new ImageView(imageDecline));
+        ToggleButton userManagerBttn = new ToggleButton("Course Management", new ImageView(imageDecline));
         userManagerBttn.setContentDisplay(ContentDisplay.TOP);
         ToggleButton weeklyScheduleBttn = new ToggleButton("Weekly Schedule", new ImageView(imageDecline));
         weeklyScheduleBttn.setContentDisplay(ContentDisplay.TOP);
@@ -297,7 +303,7 @@ public class VaqPackOrganizer extends Application {
         toolBar.getItems().get(0).setStyle("-fx-base: #b6e7c9;");
         toolBar.getItems().get(2).setStyle("-fx-base: #b6e7c9;");
         toolBar.getItems().get(4).setStyle("-fx-base: #b6e7c9;");
-
+        toolBar.getItems().get(6).setStyle("-fx-base: #b6e7c9;");   
         //On mouse hover enlarge each togglebutton
         {
         toolBar.getItems().get(0).setOnMouseEntered((ae) -> {
@@ -311,6 +317,10 @@ public class VaqPackOrganizer extends Application {
         toolBar.getItems().get(4).setOnMouseEntered((ae) -> {
         toolBar.getItems().get(4).setScaleX(1.1);
         toolBar.getItems().get(4).setScaleY(1.1);
+        });
+        toolBar.getItems().get(6).setOnMouseEntered((ae) -> {
+        toolBar.getItems().get(6).setScaleX(1.1);
+        toolBar.getItems().get(6).setScaleY(1.1);
         });
         }
         //On mouse exit return Button to normal size
@@ -327,6 +337,11 @@ public class VaqPackOrganizer extends Application {
         toolBar.getItems().get(4).setScaleX(1);
         toolBar.getItems().get(4).setScaleY(1);
         });
+        toolBar.getItems().get(6).setOnMouseExited((ae) -> {
+        toolBar.getItems().get(6).setScaleX(1);
+        toolBar.getItems().get(6).setScaleY(1);
+        });
+        
         }
     //Bindings
         fontTracking = new SimpleObjectProperty<Font>(Font.font(8));
@@ -351,9 +366,9 @@ public class VaqPackOrganizer extends Application {
         //Bind the borderPane to the scene
         borderPane.prefWidthProperty().bind(scene.widthProperty());
         
-//Listeners for both height and width of primary scene// resizes buttons & toolbar & text
-      scene.widthProperty().addListener(new ChangeListener<Number>()
-       {
+        //Listeners for both height and width of primary scene// resizes buttons & toolbar & text
+        scene.widthProperty().addListener(new ChangeListener<Number>()
+        {
         @Override
         public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth)
         {
@@ -362,7 +377,7 @@ public class VaqPackOrganizer extends Application {
         });
         
         scene.heightProperty().addListener(new ChangeListener<Number>()
-       {
+        {
         @Override
         public void changed(ObservableValue<? extends Number> observableValue, Number oldHeight, Number newHeight)
         {
@@ -443,10 +458,96 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         grid.setHgrow(grid,Priority.ALWAYS);
          });
         
+        //User Management Button Listener
+        userManagerBttn.setOnAction(aq -> {
+        borderPane.setCenter(null);
+        
+        HBox buttonBox = new HBox(10);
+        buttonBox.getChildren().addAll(regBttn,newCourseBttn);
+        
+        borderPane.setLeft(buttonBox);
+        
+         //------------------------------------------------------------Register For Course Button---------------------------------------
+        
+        regBttn.setOnAction(ay ->{
+        String sql = "SELECT * FROM test.courses";
+        TableView<Course> courseView = viewCourses(sql);
+        FlowPane regCoursePane = new FlowPane();
+        Label regCourseLbl = new Label("Choose a course to register for");
+        Button regConfirmBttn = new Button("Register");
+        Button regCancelBttn = new Button("Cancel");
+        //Confirm/Cancel Button listeners
+        regCoursePane.getChildren().addAll(regCourseLbl,regConfirmBttn,regCancelBttn,courseView);
+        borderPane.setCenter(regCoursePane);
+        //Grabs Course Object
+        courseView.setOnMouseClicked(as -> {
+            //Takes selection
+            Course myCourse = (Course)courseView.getSelectionModel().getSelectedItem();
+            regConfirmBttn.setOnAction(ax -> 
+                {
+                registerCourse(myCourse);
+                });
+            regCancelBttn.setOnAction(ae -> 
+                {
+                //TODO Set back to page
+                });
+          });
+    });
+        
+        //-----------------------------------------------------------New Course Button-------------------------------------------------
+        
+        newCourseBttn.setOnAction(af -> {
+        TimeTicks timeTicks = new TimeTicks(30);
+        timeTicks.generateTicks();
+        String[] timeIntervals= timeTicks.getTimeTicksStrings();
+        ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
+        ComboBox apptStartTimeCombo = new ComboBox();
+        ComboBox apptEndTimeCombo = new ComboBox();
+        apptStartTimeCombo.setItems(list);
+        apptEndTimeCombo.setItems(list);
+        Label courseSplash = new Label("Create a new course");
+        Label courseNameLbl = new Label("Enter Course Name");
+        Label courseClassLbl = new Label("Enter Class Room");
+        Label courseStartDateLbl = new Label("Pick Start Date");
+        Label courseStartTimeLbl = new Label("Pick Start Time");
+        Label courseEndTimeLbl = new Label("Pick End Time");
+        Label courseDescriptionLbl = new Label("Enter Course Description");
+        Label courseProfLbl = new Label("Choose Professor");
+        Button courseSubmit = new Button ("Create Course");
+        TextField courseNameTxt = new TextField();
+        TextField courseClassTxt = new TextField();
+        DatePicker startDatePicker = new DatePicker();
+        TextField courseDescriptionTxt = new TextField();
+        VBox myFlowPane = new VBox(5);
+        VBox box = new VBox();
+        box.setMaxHeight(100);
+        myFlowPane.getChildren().addAll(courseSplash,courseNameLbl,courseNameTxt,courseClassLbl,courseClassTxt,courseStartDateLbl,startDatePicker,courseStartTimeLbl,apptStartTimeCombo,courseEndTimeLbl,apptEndTimeCombo,courseDescriptionLbl,courseDescriptionTxt,courseSubmit);
+        borderPane.setCenter(myFlowPane);
+       //Listner for Course Submit 
+        courseSubmit.setOnAction(ag -> {
+        String courseName = courseNameTxt.getText();
+        String courseLocation = courseClassTxt.getText();
+        String startDate =  startDatePicker.getValue().toString();
+        String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
+        String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
+        String courseDescription = courseDescriptionTxt.getText();
+        //Need to grab profId from a table
+        int profId = 2;
+        String mySql = "INSERT INTO `test`.`courses` (`courseName`, `classRoom`, `startDate`, `startTime`, `endTime`, `courseDesc`, `profId`) VALUES ('" + courseName + "', '" + courseLocation + "', '" + startDate + "', '" + courseStartTime + "', '" + courseEndTime + "', '" + courseDescription + "', '2');";
+        
+             try {  
+                myStat.executeUpdate(mySql);
+                    } catch (SQLException ex) {
+                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                });
+            });
+//-------------------------------------------------------------------END NEW COURSE----------------------------------------------------------------------------
+        
+        });
+        
  //-------------------------------------------------------MONTH VIEW-----------------------------------------------------------------------------------------
         monthlyScheduleBttn.setOnAction((ae) -> {
-        
-        borderPane.setBottom(newCourseBttn);
         HBox monthlyHbox = new HBox();
         HBox monthlyHbox2 = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
@@ -481,9 +582,11 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
           DatePicker myPicker = new DatePicker();
           Button cancelBttn = new Button ("Cancel");
           Button submitNewUserBttn = new Button("Create Appt.");
+          
           myFlowPane.getChildren().addAll(apptDateLbl,myPicker,startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,submitNewUserBttn, cancelBttn);    
           
           //---------------------------------------------------------Create NEW User--------------------------------------------------------------------
+          
           submitNewUserBttn.setOnAction(ax -> {
              try {
              String createApptsql = "";
@@ -492,6 +595,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                     Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                                             }
                     });
+          
                 cancelBttn.setOnAction(as -> {
                  apptStage.close();
                 });
@@ -501,41 +605,16 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             }
         
         Button apptBttn1 = new Button("Create Appointment");
-        Button emailBtn = new Button("Send Email");
-        //monthlyHbox.getChildren().add(apptBttn);
-       // monthlyHbox2.getChildren().add(apptBttn1);
-        monthlyHbox2.getChildren().addAll(apptBttn1,emailBtn);
         
-        //email
-         emailBtn.setOnAction(new EventHandler<ActionEvent>() {
-            
-            @Override
-            public void handle(ActionEvent event) {
-                SimpleEmail ee = new SimpleEmail();
-                try {
-                    Stage estage = new Stage();
-                    
-                    ee.start(estage);
-                    
-                    
-                    
-                    
-                    
-                    
-                    //System.out.println("Hello World!");
-                } catch (Exception ex) {
-                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
-                
-            }
-        });
+        
+        monthlyHbox2.getChildren().addAll(apptBttn1,regBttn);
         
         
  //This sets up the date for the semester for labeling later
        LocalDate semesterStart = LocalDate.of(2016,1,15);
        LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
-       
+       long numDays = DAYS.between(semesterStart,semesterEnd);
+ 
 //------------------------------------------------------------DatePicker Setup-----------------------------------------------------------------------------
        DatePicker datePicker = new DatePicker();
        //DayCellFactory allows modification of cells in datePicker
@@ -551,7 +630,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 
                                 //Action Events for when a date cell is clicked
                                 this.setOnMouseClicked(a -> {
-                                    
                                         Stage apptStage = new Stage();
                                         BorderPane myBorderPane = new BorderPane();
                                         Scene apptScene = new Scene(myBorderPane,500,500);
@@ -559,18 +637,13 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         timeTicks.generateTicks();
                                         String[] timeIntervals= timeTicks.getTimeTicksStrings();
                                         ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
-                                        
-                                        
                                         Label startTime = new Label("Appointment Start Time");
                                         Label endTime = new Label("Appointment End Time");
-                                        
-                                        
                                         HBox topBox = new HBox(10);
                                         String greeting = ("Hello " + loggedInStudent.getFirstName() + " " + loggedInStudent.getLastName());
                                         String todaysDate = item.toString();
                                         Label todaysEvents = new Label("Your Appointments for " + todaysDate);
                                         Label greetLbl = new Label(greeting);
-                                        
                                         topBox.getChildren().addAll(greetLbl,todaysEvents);
                                         myBorderPane.setTop(topBox);
                                         ComboBox apptStartTimeCombo = new ComboBox();
@@ -583,37 +656,86 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         TextField apptLocTxtFld = new TextField();
                                         TextField apptReasonTxtFld = new TextField();
                                         String apptDate = item.toString();
-                                        myBorderPane.setPadding(new Insets(11, 12, 13, 14));
+                                        
+                                        Button apptBttn = new Button("Create Appt.");
                                         Button createApptBttn = new Button("Create Appt.");
                                         Button cancelBttn = new Button ("Cancel");
-                                        Button okBttn = new Button("Create Appt.");
+                                        
                                         String sql = "SELECT * FROM `test`.`appointments` WHERE studentId = '" + loggedInStudent.getStudentId() + "' AND apptDate = '" + apptDate +"';";
                                         TableView<Appointment> apptTable = viewAppointments(sql);
                                         VBox myVB = new VBox(10);
-                                        myVB.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,okBttn, cancelBttn);    
+                                        myVB.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,createApptBttn,cancelBttn);    
                                         
-                                        myBorderPane.setLeft(createApptBttn);
+                                        //Modifiying appointment
+                                        Label startTime2 = new Label("Appointment Start Time");
+                                        Label endTime2 = new Label("Appointment End Time");
+                                        ComboBox apptStartTimeCombo2 = new ComboBox();
+                                        ComboBox apptEndTimeCombo2 = new ComboBox();
+                                        apptStartTimeCombo2.setItems(list);
+                                        apptEndTimeCombo2.setItems(list);
+                                        Label apptLocLbl2 = new Label("Appt Location");
+                                        Label apptReasonLbl2 = new Label("Appt Reason");
+                                        TextField apptLocTxtFld2 = new TextField();
+                                        TextField apptReasonTxtFld2 = new TextField();
+                                        Button cancelBttn2 = new Button ("Cancel");
+                                        Button updateAppointmentBttn = new Button("Update");
+                                        VBox myVB2 = new VBox(10);
+                                        Button emailBtn = new Button("Send Email");
+                                        myVB2.getChildren().addAll(startTime2,apptStartTimeCombo2,endTime2,apptEndTimeCombo2,apptLocLbl2,apptLocTxtFld2,apptReasonLbl2,apptReasonTxtFld2,emailBtn,updateAppointmentBttn,cancelBttn2);    
+                                        
+                                        //Email Button
+                                        emailBtn.setOnAction(new EventHandler<ActionEvent>() {
+                                            @Override
+                                            public void handle(ActionEvent event) {
+                                            Stage emailStage = new Stage();
+                                            GridPane emailGrid = new GridPane();
+                                            Text to = new Text("To:");
+                                            Text subject = new Text("Subject:");
+                                            TextField toInput = new TextField();
+                                            TextField subjectInput = new TextField(apptTable.getSelectionModel().getSelectedItem().apptReason);
+                                            Button clearButton = new Button("Clear");
+                                            Button submitButton = new Button("Submit");
+                                            VBox horizontal = new VBox();
+                                            HBox buttonPane = new HBox();
+                                            TextArea message = new TextArea(apptTable.getSelectionModel().getSelectedItem().apptStartTime + " " + apptTable.getSelectionModel().getSelectedItem().apptEndTime + " " + apptTable.getSelectionModel().getSelectedItem().apptLoc + " " + apptTable.getSelectionModel().getSelectedItem().apptReason);
+                                            //emailGrid.add(to, columnIndex, rowIndex);
+                                            emailGrid.add(to, 0, 0);
+                                            emailGrid.add(toInput, 1, 0);
+                                            emailGrid.add(subject, 0, 1);
+                                            emailGrid.add(subjectInput, 1, 1);
+                                            buttonPane.getChildren().addAll(clearButton,submitButton );
+                                            buttonPane.alignmentProperty();
+                                            horizontal.getChildren().addAll(emailGrid,message, buttonPane );
+                                         //Submit the email bttn
+                                     submitButton.setOnAction((as) -> {
+                                            System.out.println("Button Action");
+                                            SimpleEmail se = new SimpleEmail();
+                                            se.setTo_Text(toInput.getText());
+                                            se.setSubject_Text(subjectInput.getText());
+                                            se.setMsg_Text(message.getText());
+                                            se.Email();
+                                            });
+
+                                     clearButton.setOnAction((aw) -> {
+                                             toInput.setText("");
+                                             subjectInput.setText("");
+                                             message.setText("");
+                                            });
+
+                                            Scene emailScene = new Scene(horizontal,400,400);
+                                            emailStage.setScene(emailScene);
+                                            emailStage.show();
+                                            }
+                                        });
+                                        
+                                        VBox box = new VBox(10);
+                                        box.getChildren().addAll(apptBttn);
+                                        myBorderPane.setLeft(box);
                                         myBorderPane.setCenter(apptTable);
                                         
-                                        createApptBttn.setOnAction(ad -> {
+                                        apptBttn.setOnAction(ad -> {
                                         myBorderPane.setLeft(myVB);
-                                        });
-                                        
-                                        apptTable.setOnMouseClicked(aq -> {
-                                        Appointment myAppt = apptTable.getSelectionModel().getSelectedItem();
-                                        myBorderPane.setLeft(myVB);
-                                        String sTime = myAppt.apptStartTime;
-                                        String eTime = myAppt.apptEndTime;
-                                        String loc = myAppt.apptLoc;
-                                        String rea = myAppt.apptReason;
-                                        
-                                        apptStartTimeCombo.setValue(sTime);
-                                        apptEndTimeCombo.setValue(eTime);
-                                        apptLocTxtFld.setText(loc);
-                                            apptReasonTxtFld.setText(rea);
-                                        });
-                                        
-                                        okBttn.setOnAction(ax -> {
+                                        createApptBttn.setOnAction(ax -> {
                                             try {
                                                 
                                                 String apptStartTime= apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
@@ -632,9 +754,61 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         cancelBttn.setOnAction(as -> {
                                         apptStage.close();
                                         });
+                                        
+                                 });
+                                        
+                                        apptTable.setOnMouseClicked(aq -> {
+                                        
+                                        Appointment myAppt = apptTable.getSelectionModel().getSelectedItem();
+                                        myBorderPane.setLeft(myVB2);
+                                        String sTime = myAppt.apptStartTime;
+                                        String eTime = myAppt.apptEndTime;
+                                        String loc = myAppt.apptLoc;
+                                        String rea = myAppt.apptReason;
+                                        
+                                        apptStartTimeCombo2.setValue(sTime);
+                                        apptEndTimeCombo2.setValue(eTime);
+                                        apptLocTxtFld2.setText(loc);
+                                        apptReasonTxtFld2.setText(rea);
+                                    
+                                        updateAppointmentBttn.setOnAction(ax -> {
+                                            try {
+                                                
+                                                String apptStartTime= apptStartTimeCombo2.getSelectionModel().getSelectedItem().toString();
+                                                String apptEndTime= apptEndTimeCombo2.getSelectionModel().getSelectedItem().toString();
+                                                //This needs to be changed to reflect the currentlu logged studentid
+                                                String update = ("UPDATE `test`.`appointments` SET `apptDate`='" + myAppt.apptDate + "', `apptStartTime`='" + apptStartTime + "', `apptEndTime`='" + apptEndTime + "', `apptLoc`='" + apptLocTxtFld2.getText() + "', `apptReason`='" + apptReasonTxtFld2.getText()+ "' WHERE `appointmentId`='" + myAppt.appointmentId + "'");
+                                                myStat.executeUpdate(update);
+                                                TableView<Appointment> apptTable2 = viewAppointments(sql);
+                                                myBorderPane.setCenter(apptTable2);
+                                            }
+                                            catch (SQLException ex) {
+                                                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                        });
+                                        
+                                        cancelBttn.setOnAction(as -> {
+                                        apptStage.close();
+                                        });
+                                    });
+                                        
+                                        
                                         apptStage.setScene(apptScene);
                                         apptStage.show();
                                 });
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                                 this.setOnMouseEntered(a -> {
                                 this.setScaleX(1.1);
                                 this.setScaleY(1.1);
@@ -662,7 +836,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 catch (SQLException ex) {
                                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                                     }
-                                
+    
                                 for(Appointment myAppt : myAppts){
                                  String date1 = myAppt.apptDate;
                                  String date = item.toString();
@@ -705,53 +879,9 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
        borderPane.setLeft(monthlyHbox);
        borderPane.setRight(monthlyHbox2);
         });
-        //-----------------------------------------------------------New Course Button-------------------------------------------------
         
-        newCourseBttn.setOnAction(af -> {
-        TimeTicks timeTicks = new TimeTicks(30);
-        timeTicks.generateTicks();
-        String[] timeIntervals= timeTicks.getTimeTicksStrings();
-        ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
-        ComboBox apptStartTimeCombo = new ComboBox();
-        ComboBox apptEndTimeCombo = new ComboBox();
-        apptStartTimeCombo.setItems(list);
-        apptEndTimeCombo.setItems(list);
-        Label courseSplash = new Label("Create a new course");
-        Label courseNameLbl = new Label("Enter Course Name");
-        Label courseClassLbl = new Label("Enter Class Room");
-        Label courseStartDateLbl = new Label("Pick Start Date");
-        Label courseStartTimeLbl = new Label("Pick Start Time");
-        Label courseEndTimeLbl = new Label("Pick End Time");
-        Label courseDescriptionLbl = new Label("Enter Course Description");
-        Label courseProfLbl = new Label("Choose Professor");
-        Button courseSubmit = new Button ("Create Course");
-        TextField courseNameTxt = new TextField();
-        TextField courseClassTxt = new TextField();
-        DatePicker startDatePicker = new DatePicker();
-        TextField courseDescriptionTxt = new TextField();
-        FlowPane myFlowPane = new FlowPane();
-        myFlowPane.getChildren().addAll(courseSplash,courseNameLbl,courseNameTxt,courseClassLbl,courseClassTxt,courseStartDateLbl,startDatePicker,courseStartTimeLbl,apptStartTimeCombo,courseEndTimeLbl,apptEndTimeCombo,courseDescriptionLbl,courseDescriptionTxt,courseSubmit);
-        borderPane.setRight(myFlowPane);
-        courseSubmit.setOnAction(ag -> {
-        String courseName = courseNameTxt.getText();
-        String courseLocation = courseClassTxt.getText();
-        String startDate =  startDatePicker.getValue().toString();
-        String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
-        String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
-        String courseDescription = courseDescriptionTxt.getText();
-        //Need to grab profId from a table
-        int profId = 2;
-        String mySql = "INSERT INTO `test`.`courses` (`courseName`, `classRoom`, `startDate`, `startTime`, `endTime`, `courseDesc`, `profId`) VALUES ('" + courseName + "', '" + courseLocation + "', '" + startDate + "', '" + courseStartTime + "', '" + courseEndTime + "', '" + courseDescription + "', '2');";
         
-             try {  
-                myStat.executeUpdate(mySql);
-                    } catch (SQLException ex) {
-                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                });
-            });
-//-------------------------------------------------------------------END NEW COURSE----------------------------------------------------------------------------
-        
+               
 //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     primaryStage.setTitle("VaqPack");
     primaryStage.setScene(scene);
@@ -762,15 +892,16 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
 
  
  public TableView viewAppointments(String m){
-            ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
-            TableView<Appointment> myTableView = new TableView<Appointment>();
+         
+     ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
             try {
                 appointmentList = readAppointments(m);
             } catch (SQLException ex) {
                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
             }
-            myTableView.setItems(appointmentList);
             
+            TableView<Appointment> myTableView = new TableView<Appointment>();
+            myTableView.setItems(appointmentList);
             TableColumn<Appointment,Integer> appointmentId= new TableColumn<>("appointmentId");
             appointmentId.setCellValueFactory(new PropertyValueFactory<Appointment,Integer>("appointmentId"));
             
@@ -835,8 +966,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         return null;
     }
  public TableView viewStudents(String m){
- 
- 
             ObservableList<Student> StudentList = FXCollections.observableArrayList();
             TableView<Student> myTableView = new TableView<Student>();
             try {
@@ -959,7 +1088,31 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         return CourseList;
     }
 
- public void addTimeToGrid(Object timeIncrement)
+public void registerCourse(Course course)
+{
+LocalDate semesterStart = LocalDate.of(2016,1,15);
+LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
+int numDays = (int)DAYS.between(semesterStart,semesterEnd);
+ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();    
+//for each course listed in the students course list
+    String date = course.getStartDate();
+    DateTimeFormatter formatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    LocalDate myDate = LocalDate.parse(date,formatter);
+
+    for (int j = 0; j <numDays/7 + 1; j++) 
+        {
+        Appointment myAppt = new Appointment(j,loggedInStudent.getStudentId(),myDate.toString(),course.getStartTime(),course.getEndTime(),course.getClassRoom(),"Class Appointment");
+        appointmentList.add(myAppt);
+        myDate = myDate.plusDays(7);
+        }
+    for (int i = 0; i < appointmentList.size(); i++) {
+       String sql = ("INSERT INTO `test`.`appointments` (`studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('" + loggedInStudent.getStudentId() + "', '" + appointmentList.get(i).apptDate + "', '" + appointmentList.get(i).apptStartTime + "', '" + appointmentList.get(i).apptEndTime + "', '" +appointmentList.get(i).apptLoc+ "', '" + appointmentList.get(i).apptReason + "');");
+       updateRecords(sql);
+    }
+}
+
+  public void addTimeToGrid(Object timeIncrement)
 {
         grid.setGridLinesVisible(false);
         int time = Integer.parseInt(timeIncrement.toString());
