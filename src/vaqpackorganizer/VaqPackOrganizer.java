@@ -474,7 +474,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
     
         //----------------------------------------------------------Modify Courses-----------------------------------------------
         
-    modifyCourseBttn.setOnAction(ag -> {
+        modifyCourseBttn.setOnAction(ag -> {
         String mod = ("SELECT * FROM test.courses;");
         TableView<Course> courseView = viewCourses(mod);
         borderPane.setCenter(courseView);
@@ -495,7 +495,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             Course thisCourse = courseView.getSelectionModel().getSelectedItem();
             apptStartTimeCombo.setValue(thisCourse.getStartTime());
             apptEndTimeCombo.setValue(thisCourse.getEndTime());
-            
             Label courseSplash = new Label("Modify course");
             Label courseNameLbl = new Label("Enter Course Name");
             Label courseClassLbl = new Label("Enter Class Room");
@@ -508,7 +507,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             courseNameTxt.setText(thisCourse.getCourseName());
             TextField courseClassTxt = new TextField();
             courseClassTxt.setText(thisCourse.getClassRoom());
-            
             TextField courseDescriptionTxt = new TextField();
             courseDescriptionTxt.setText(thisCourse.getCourseDesc());
             String date = thisCourse.getStartDate();
@@ -529,8 +527,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
                 String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
                 String courseDescription = courseDescriptionTxt.getText();
-            
-                //Need to grab profId from a table
+            //Need to grab profId from a table
                 int profId = 2;
                 String mySql = ("UPDATE `test`.`courses` SET `courseName`='" + courseName + "', `classRoom`='" + courseLocation + "', `startDate`='" + startDate +"', `startTime`='" + courseStartTime +"', `endTime`='" + courseEndTime + "', `courseDesc`='" + courseDescription +" ', `profId`='4' WHERE `courseId`='" + thisCourse.getCourseId()+"';");
                      try {  
@@ -538,7 +535,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                             } catch (SQLException ex) {
                             Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                     
                      String mod2 = ("SELECT * FROM test.courses;");
                      TableView<Course> courseView2 = viewCourses(mod);
                      borderPane.setCenter(courseView2);
@@ -928,18 +924,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         apptStage.show();
                                 });
                                 
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
                                 this.setOnMouseEntered(a -> {
                                 this.setScaleX(1.1);
                                 this.setScaleY(1.1);
@@ -1257,8 +1241,171 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         TimeTicks timeTicks = new TimeTicks(time);
         timeTicks.generateTicks();
         String[] timeIntervals= timeTicks.getTimeTicksStrings();
+        
+        ObservableList<Appointment> myApptList = FXCollections.observableArrayList() ;
+        ObservableList<Appointment> fiveDayList = FXCollections.observableArrayList() ;
+        String sql = "SELECT * FROM test.appointments WHERE studentId =" + loggedInStudent.getStudentId()+"";
+        try {
+            myApptList = readAppointments(sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        Label timeLbl = new Label("Time");
+        LocalDate today = LocalDate.now();
+        String todayDay = today.getDayOfWeek().toString();
+        Label todayDayLbl = new Label(todayDay);
+        LocalDate oneFromToday = today.plusDays(1);
+        String oneFromTodayDay = oneFromToday.getDayOfWeek().toString();
+        Label oneFromTodayDayLbl = new Label(oneFromTodayDay);
+        LocalDate twoFromToday = today.plusDays(2);
+        String twoFromTodayDay = twoFromToday.getDayOfWeek().toString();
+        Label twoFromTodayDayLbl = new Label(twoFromTodayDay);
+        LocalDate threeFromToday = today.plusDays(3);
+        String threeFromTodayDay = threeFromToday.getDayOfWeek().toString();
+        Label threeFromTodayDayLbl = new Label(threeFromTodayDay);
+        LocalDate fourFromToday = today.plusDays(4);
+        String fourFromTodayDay = fourFromToday.getDayOfWeek().toString();
+        Label fourFromTodayDayLbl = new Label(fourFromTodayDay);
+       for (int i = 0; i < myApptList.size(); i++)
+        {
+        String date = myApptList.get(i).apptDate;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate myDate = LocalDate.parse(date,formatter);
+      
+            if (myDate.isAfter(today) && myDate.isBefore(fourFromToday) && myApptList.get(i).getApptReason().equals("Class Appointment")) 
+                {
+                fiveDayList.add(myApptList.get(i));
+                }
+        }
+       grid.addColumn(0, timeLbl);
+       grid.addColumn(1, todayDayLbl); 
+       grid.addColumn(2, oneFromTodayDayLbl); 
+       grid.addColumn(3, twoFromTodayDayLbl);  
+       grid.addColumn(4, threeFromTodayDayLbl);  
+       grid.addColumn(5, fourFromTodayDayLbl);  
+       
+       for (int i = 0; i < fiveDayList.size(); i++) 
+       {
+           
+           String locStr = fiveDayList.get(i).apptLoc;
+           String startTime = fiveDayList.get(i).apptStartTime;
+           String endTime = fiveDayList.get(i).apptEndTime;
+           String date = fiveDayList.get(i).apptDate;
+           System.out.println("Date is " + date + "\t" + "AppointmentId: "+ fiveDayList.get(i).appointmentId + "\t" + "Location" + fiveDayList.get(i).apptLoc);
+           DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+           LocalDate myDate = LocalDate.parse(date,formatter);
+           String myDateDay = myDate.getDayOfWeek().toString();
+           
+           int startTimeIndex = getIndex(timeIntervals,startTime);
+           int endTimeIndex = getIndex(timeIntervals,endTime);
+           System.out.println("Starttimeindex: "+startTimeIndex + "EndTImeIndex: "+ endTimeIndex);
+           
+           int count = endTimeIndex - startTimeIndex;
+           System.out.println("count" + count);
+       if(startTimeIndex > 0 && endTimeIndex > 0)
+        {
+           if (myDateDay.equals(todayDay)) 
+           {
+                for (int j = startTimeIndex; j <= endTimeIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 1, j);
+                    
+                }
+            }
+           if (myDateDay.equals(oneFromTodayDay)) 
+           {
+                 for (int j = startTimeIndex; j <= endTimeIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 2, j);
+                    }
+            }
+           if (myDateDay.equals(twoFromTodayDay)) 
+           {
+                 for (int j = startTimeIndex; j <= endTimeIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 3, j);
+                }
+            }
+           if (myDateDay.equals(threeFromTodayDay)) 
+           {
+               Label  locLbl = new Label(locStr);
+                 for (int j = startTimeIndex; j <= endTimeIndex; j++)
+                {
+                    grid.add(locLbl, 4, j);
+                }
+            }
+           
+           if (myDateDay.equals(fourFromTodayDay)) 
+           {
+                 for (int j = startTimeIndex; j <= endTimeIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 5, j);
+                }
+            }
+       }
+       
+       else
+       {
+       System.out.println("Does it get here");
+       String[] splitStartTime = sSplitter(startTime);
+       String[] splitEndTime = sSplitter(endTime);
+       int startTimeFuzzyIndex = getFuzzyIndex(splitStartTime,timeIntervals,time);
+       int endTimeFuzzyIndex = getFuzzyIndex(splitEndTime,timeIntervals,time);
+           System.out.println("StartTimeFuzzyIndex " + startTimeFuzzyIndex + "EndTimeFuzzyIndex: " + startTimeFuzzyIndex);
+       if(startTimeFuzzyIndex > 0 && endTimeFuzzyIndex > 0)
+        {
+           if (myDateDay.equals(todayDay)) 
+           {
+                for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 1, j);
+                
+                }
+            }
+           if (myDateDay.equals(oneFromTodayDay)) 
+           {
+                for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 2, j);
+                    
+                }
+            }
+           if (myDateDay.equals(twoFromTodayDay)) 
+           {
+                for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 3, j);
+                }
+            }
+           if (myDateDay.equals(threeFromTodayDay)) 
+           {
+                for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 4, j);
+                }
+            }
+           if (myDateDay.equals(fourFromTodayDay)) 
+           {
+                for (int j = 0; j < count; j++)
+                {
+                    Label  locLbl = new Label(locStr);
+                    grid.add(locLbl, 5, j);
+                }
+            }
+         }
+      }
+   }
 //This setups up the different views of the weeklySchedule
-       {    
+    {    
     final int numCols =  6;
     //The number of rows is dependent on the timeIncrement object passed from the tgb
     final int numRows = timeIntervals.length;
@@ -1275,7 +1422,7 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
      row.prefHeightProperty().bind(grid.heightProperty());
      grid.getRowConstraints().add(row);
      }   
-        }
+    }
     //Add time data to column 1
      for(int i = 0;i<timeIntervals.length;i++)
         {
@@ -1288,8 +1435,57 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         myButton1.fontProperty().bind(fontTracking);
         grid.addColumn(0, myButton1);
         }
-grid.setGridLinesVisible(true);      
+     grid.setGridLinesVisible(true);      
     }
- 
- }
+  
+   public int getIndex(String arr[],String s)
+    {
+      for(int i = 0; i < arr.length; i++){
+      if(arr[i].equals(s))
+      return i+1;
+        }
+      return -1;
+    }
 
+   public int getFuzzyIndex (String splitArray[],String intervalArray[],int time)
+{
+    
+    TimeTicks timeTicks = new TimeTicks(time);
+    timeTicks.generateTicks();
+    intervalArray= timeTicks.getTimeTicksStrings();
+    int index=-1;
+    for(int i = 0;i<intervalArray.length;i++)
+    {
+       if (intervalArray[i].startsWith(splitArray[0]) && intervalArray[i].endsWith(splitArray[2]) )
+       {        
+         index = i+1;
+       }
+       
+   }
+return index;
+}
+
+public String[] sSplitter(String s)
+         
+{   String hour;
+    String minute;
+    String ampm;
+    String[] finalArray = new String[3];
+    String criteria = ":";
+    String criteria2 = " ";
+     //splits at the :
+    String[] splitArray = s.split(criteria,2);
+    hour = splitArray[0];
+    minute = splitArray[1];
+    //splits minute from 15 AM to {"15", "AM"}
+    String[] splitArray2 = minute.split(criteria2,2);
+     minute = splitArray2[0];
+     ampm = splitArray2[1];
+     finalArray[0] = hour;
+     finalArray[1] = minute;
+     finalArray[2] = ampm;
+          
+  return finalArray;       
+}  
+  
+ }
