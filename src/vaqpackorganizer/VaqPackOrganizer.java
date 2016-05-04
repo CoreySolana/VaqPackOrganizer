@@ -1,11 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package vaqpackorganizer;
-
-
 import com.sun.javafx.scene.control.skin.DatePickerSkin;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import static java.time.temporal.ChronoUnit.DAYS;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -39,12 +33,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -89,7 +85,6 @@ public class VaqPackOrganizer extends Application {
     Image weekImg = new Image(getClass().getResourceAsStream("calendar_view_week.png"));
     ImageView starView = new ImageView(imageStar);
     ImageView weekImgView = new ImageView();
-    
     Connection myConnection = null;
     Statement myStat = null; 
     ResultSet myRes = null;
@@ -100,19 +95,18 @@ public class VaqPackOrganizer extends Application {
     Button regBttn = new Button("Reg for Course");
     Button myCoursesBttn = new Button("My Courses");
     Button modifyCourseBttn = new Button ("Modify Course");
-    
+    Button unregCourseBttn = new Button ("Unregister from Course");
     ToolBar toolBar; 
     ColumnConstraints column;      
     RowConstraints row;      
     GridPane grid;
     ObjectProperty<Font> fontTracking;
     Student loggedInStudent;
-    @Override
-    public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
-//Setups Connection to database
-    myConnection = DriverManager.getConnection("jdbc:mysql://127.0.0.1/test","root","Pass!234"); /////
-    myStat = myConnection.createStatement();
-
+        @Override
+        public void start(Stage primaryStage) throws ClassNotFoundException, SQLException {
+        //Setups Connection to database
+        myConnection = DriverManager.getConnection("jdbc:mysql://127.0.0.1/test","root","Pass!234"); /////
+        myStat = myConnection.createStatement();
         
 //--------------------------------- START LOGIN PAGE------------------------------------------------------------------
         Stage loginStage = new Stage();
@@ -120,7 +114,6 @@ public class VaqPackOrganizer extends Application {
         Scene loginScene = new Scene(loginBorderPane,400,400);
         loginStage.setScene(loginScene);
         loginStage.show();
-        
         loginBorderPane.setPadding(new Insets(10,50,50,50));
         HBox loginHbox = new HBox();
         loginHbox.setPadding(new Insets(20,20,20,30));
@@ -156,13 +149,13 @@ public class VaqPackOrganizer extends Application {
             String uName = userNameTxt.getText();
             String passWord = passFld.getText();
             String sql = "SELECT * FROM `test`.`students`";
-            
             ObservableList<Student> studentList = FXCollections.observableArrayList();
-            try {
-               studentList = readStudents(sql);
-            } catch (SQLException ex) {
-                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                try 
+                {
+                   studentList = readStudents(sql);
+                } catch (SQLException ex) {
+                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                }
             loggedInStudent = getStudent(studentList,uName);
             if(loggedInStudent != null)
             {
@@ -187,13 +180,6 @@ public class VaqPackOrganizer extends Application {
                alert.showAndWait();
                 }
             });
-        
-        
-        
-        
-//----------------------------------------------Preloading-----------------------------------------------------------
-        //this needs to grab stuff from the registered students 
-        
 //---------------------------------New User Creation------------------------------------------------------------------
         newUBtn.setOnAction(ae -> {
         Stage newUStage = new Stage();
@@ -249,9 +235,8 @@ public class VaqPackOrganizer extends Application {
         newUHbox.getChildren().add(newUTxt);
         newUBorderPane.setTop(newUHbox);
         newUBorderPane.setCenter(newUGridPane);
-        
         //Grabs data from fields and passes sql command to database to insert the new user
-        nnewUBtn.setOnAction(xe -> {
+            nnewUBtn.setOnAction(xe -> {
             //Get text from inputs
             String userName = nnuserNameTxt.getText();
             String passWord = npassFld.getText();
@@ -380,7 +365,6 @@ public class VaqPackOrganizer extends Application {
       fontTracking.set(Font.font(newWidth.doubleValue() / 90));
               }
         });
-        
         scene.heightProperty().addListener(new ChangeListener<Number>()
         {
         @Override
@@ -462,23 +446,89 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         borderPane.setCenter(grid);    
         grid.setHgrow(grid,Priority.ALWAYS);
          });
-        
         //User Management Button Listener
         userManagerBttn.setOnAction(aq -> {
         borderPane.setCenter(null);
-        
         VBox buttonBox = new VBox(10);
-        buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn,modifyCourseBttn);
-        
+        buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn,modifyCourseBttn,unregCourseBttn);
         borderPane.setLeft(buttonBox);
-    
-        //----------------------------------------------------------Modify Courses-----------------------------------------------
+        //---------------------------------------------Unregister for a Course Bttn----------------------------------------------
         
+        unregCourseBttn.setOnAction(ai -> {
+        
+        String sql = ("SELECT * FROM test.registeredstudents WHERE studentId =" + loggedInStudent.getStudentId() + ";");
+        ObservableList<Registered> myRegCourses = FXCollections.observableArrayList();
+        ObservableList<Course> myCourses = FXCollections.observableArrayList();
+        TableView<Course> myCourseView = new TableView<Course>();
+        borderPane.setCenter(myCourseView);
+        try {
+           myRegCourses = readRegCourses(sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         for (int i = 0; i < myRegCourses.size(); i++) {
+             int courseId = myRegCourses.get(i).getCourseId();
+                String sql2 = ("SELECT * FROM `test`.`courses` WHERE courseId =" + courseId + ";");
+                ObservableList<Course> holder= FXCollections.observableArrayList();
+                    try {
+                        holder = readCourses(sql2);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                myCourses = FXCollections.concat(myCourses,holder);
+             }
+            myCourseView.setItems(myCourses);
+            TableColumn<Course,Integer> courseId= new TableColumn<>("courseId");
+            courseId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("courseId"));
+            TableColumn<Course,String> courseName = new TableColumn<>("courseName");
+	    courseName.setCellValueFactory(new PropertyValueFactory<Course,String>("courseName"));
+            TableColumn<Course,String> classRoom = new TableColumn<>("classRoom");
+	    classRoom.setCellValueFactory(new PropertyValueFactory<Course,String>("classRoom"));
+            TableColumn<Course,String> startDate = new TableColumn<>("startDate");
+            startDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+            TableColumn<Course,String> startTime = new TableColumn<>("startTime");
+            startTime.setCellValueFactory(new PropertyValueFactory<>("startTime"));
+            TableColumn<Course,String> endTime = new TableColumn<>("endTime");
+            endTime.setCellValueFactory(new PropertyValueFactory<>("endTime"));
+            TableColumn<Course,String> courseDesc = new TableColumn<>("courseDesc");
+            courseDesc.setCellValueFactory(new PropertyValueFactory<>("courseDesc"));
+            TableColumn<Course,Integer> profId= new TableColumn<>("profId");
+            profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
+            myCourseView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
+        
+        myCourseView.setOnMouseClicked(af -> {
+        Course thisCourse = myCourseView.getSelectionModel().getSelectedItem();
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation Dialog");
+        alert.setHeaderText("Unregister Course: " + " " + thisCourse.getCourseName());
+        alert.setContentText("Are you sure you want to Unregister for this Course?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK)
+            {
+                    try 
+                    {
+                        unregisterCourse(thisCourse);
+                    }
+                    catch (SQLException ex) 
+                    {
+                        Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+            }
+            else
+            {
+                // ... user chose CANCEL or closed the dialog
+            }
+              
+        });
+          
+      });
+        
+        //----------------------------------------------------------Modify Courses-----------------------------------------------
         modifyCourseBttn.setOnAction(ag -> {
         String mod = ("SELECT * FROM test.courses;");
         TableView<Course> courseView = viewCourses(mod);
         borderPane.setCenter(courseView);
-        
         courseView.setOnMouseClicked(ao -> {
             Stage modCourseStage = new Stage();
             BorderPane myPane = new BorderPane();
@@ -543,11 +593,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             });
         
         });
-        
-        
-        
-        
-        
         //-----------------------------------------------------------View My Courses---------------------------------------------
         myCoursesBttn.setOnAction(as -> {
         String sql = ("SELECT * FROM test.registeredstudents WHERE studentId =" + loggedInStudent.getStudentId() + ";");
@@ -562,7 +607,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         }
          for (int i = 0; i < myRegCourses.size(); i++) {
              System.out.println(myRegCourses.get(i).getCourseId());
-             
              int courseId = myRegCourses.get(i).getCourseId();
                 String sql2 = ("SELECT * FROM `test`.`courses` WHERE courseId =" + courseId + ";");
                 ObservableList<Course> holder= FXCollections.observableArrayList();
@@ -591,11 +635,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             TableColumn<Course,Integer> profId= new TableColumn<>("profId");
             profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
             myCourseView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
-            
         });
-        
          //------------------------------------------------------------Register For Course Button---------------------------------------
-        
         regBttn.setOnAction(ay ->{
         String sql = "SELECT * FROM test.courses";
         TableView<Course> courseView = viewCourses(sql);
@@ -669,19 +710,16 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                     }
                 });
             });
-//-------------------------------------------------------------------END NEW COURSE----------------------------------------------------------------------------
-        
         });
-        
+ //-------------------------------------------------------------------END NEW COURSE----------------------------------------------------------------------------
  //-------------------------------------------------------MONTH VIEW-----------------------------------------------------------------------------------------
         monthlyScheduleBttn.setOnAction((ae) -> {
+        borderPane.setBottom(null);
         HBox monthlyHbox = new HBox();
         HBox monthlyHbox2 = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
         Button newApptNoDateBttn = new Button("Create Appointment");
-        
-        
-//-------------------------------------------------NEW APPOINTMENT BUTTON NO DATE (MUST SELECT DATE FROM A DATEPICKER)----------------------------------
+        //-------------------------------------------------NEW APPOINTMENT BUTTON NO DATE (MUST SELECT DATE FROM A DATEPICKER)----------------------------------
             //newApptNoDateBttn listener
         {
         newApptNoDateBttn.setOnAction(af -> {
@@ -709,11 +747,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
           DatePicker myPicker = new DatePicker();
           Button cancelBttn = new Button ("Cancel");
           Button submitNewUserBttn = new Button("Create Appt.");
-          
           myFlowPane.getChildren().addAll(apptDateLbl,myPicker,startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,submitNewUserBttn, cancelBttn);    
-          
           //---------------------------------------------------------Create NEW User--------------------------------------------------------------------
-          
           submitNewUserBttn.setOnAction(ax -> {
              try {
              String createApptsql = "";
@@ -725,22 +760,16 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
           
                 cancelBttn.setOnAction(as -> {
                  apptStage.close();
-                });
+                  });
                 apptStage.setScene(apptScene);
                 apptStage.show();
                   });
             }
-        
-        Button apptBttn1 = new Button("Create Appointment");
-        
-        
-        monthlyHbox2.getChildren().addAll(apptBttn1,regBttn);
-        
-        
- //This sets up the date for the semester for labeling later
-       LocalDate semesterStart = LocalDate.of(2016,1,15);
-       LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
-       long numDays = DAYS.between(semesterStart,semesterEnd);
+       
+        //This sets up the date for the semester for labeling later
+        LocalDate semesterStart = LocalDate.of(2016,1,15);
+        LocalDate semesterEnd = LocalDate.of(2016, 5, 16);
+        long numDays = DAYS.between(semesterStart,semesterEnd);
  
 //------------------------------------------------------------DatePicker Setup-----------------------------------------------------------------------------
        DatePicker datePicker = new DatePicker();
@@ -754,7 +783,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                             //Must Call Super
                                 super.updateItem(item, empty);
                                 this.setPrefSize(75, 75);    
-                                
                                 //Action Events for when a date cell is clicked
                                 this.setOnMouseClicked(a -> {
                                         Stage apptStage = new Stage();
@@ -783,13 +811,12 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         TextField apptLocTxtFld = new TextField();
                                         TextField apptReasonTxtFld = new TextField();
                                         String apptDate = item.toString();
-                                        
                                         Button apptBttn = new Button("Create Appt.");
                                         Button createApptBttn = new Button("Create Appt.");
                                         Button cancelBttn = new Button ("Cancel");
-                                        
                                         String sql = "SELECT * FROM `test`.`appointments` WHERE studentId = '" + loggedInStudent.getStudentId() + "' AND apptDate = '" + apptDate +"';";
                                         TableView<Appointment> apptTable = viewAppointments(sql);
+                                        apptTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
                                         VBox myVB = new VBox(10);
                                         myVB.getChildren().addAll(startTime,apptStartTimeCombo,endTime,apptEndTimeCombo,apptLocLbl,apptLocTxtFld,apptReasonLbl,apptReasonTxtFld,createApptBttn,cancelBttn);    
                                         
@@ -816,15 +843,16 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                             public void handle(ActionEvent event) {
                                             Stage emailStage = new Stage();
                                             GridPane emailGrid = new GridPane();
+                                            
+                                            ObservableList<Appointment> myAppts = apptTable.getSelectionModel().getSelectedItems();
                                             Text to = new Text("To:");
                                             Text subject = new Text("Subject:");
                                             TextField toInput = new TextField();
-                                            TextField subjectInput = new TextField(apptTable.getSelectionModel().getSelectedItem().apptReason);
+                                            TextField subjectInput = new TextField(loggedInStudent.getFirstName()+"s" + " Appointments on " + todaysDate);
                                             Button clearButton = new Button("Clear");
                                             Button submitButton = new Button("Submit");
                                             VBox horizontal = new VBox();
                                             HBox buttonPane = new HBox();
-                                            TextArea message = new TextArea(apptTable.getSelectionModel().getSelectedItem().apptStartTime + " " + apptTable.getSelectionModel().getSelectedItem().apptEndTime + " " + apptTable.getSelectionModel().getSelectedItem().apptLoc + " " + apptTable.getSelectionModel().getSelectedItem().apptReason);
                                             //emailGrid.add(to, columnIndex, rowIndex);
                                             emailGrid.add(to, 0, 0);
                                             emailGrid.add(toInput, 1, 0);
@@ -832,7 +860,12 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                             emailGrid.add(subjectInput, 1, 1);
                                             buttonPane.getChildren().addAll(clearButton,submitButton );
                                             buttonPane.alignmentProperty();
+                                            TextArea message = new TextArea();
                                             horizontal.getChildren().addAll(emailGrid,message, buttonPane );
+                                            for (int i = 0; i < myAppts.size(); i++) {
+                                            message.appendText("Location: " + myAppts.get(i).apptLoc +" Reason: " + myAppts.get(i).apptReason + " StartTime: " + myAppts.get(i).apptStartTime + " EndTime: " + myAppts.get(i).apptEndTime + "\n");
+                                            }
+                                           
                                          //Submit the email bttn
                                      submitButton.setOnAction((as) -> {
                                             System.out.println("Button Action");
@@ -848,20 +881,18 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                              subjectInput.setText("");
                                              message.setText("");
                                             });
-
                                             Scene emailScene = new Scene(horizontal,400,400);
                                             emailStage.setScene(emailScene);
                                             emailStage.show();
                                             }
                                         });
-                                        
                                         VBox box = new VBox(10);
                                         box.getChildren().addAll(apptBttn);
                                         myBorderPane.setLeft(box);
                                         myBorderPane.setCenter(apptTable);
-                                        
                                         apptBttn.setOnAction(ad -> {
                                         myBorderPane.setLeft(myVB);
+                    
                                         createApptBttn.setOnAction(ax -> {
                                             try {
                                                 
@@ -878,29 +909,28 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                             }
                                         });
                                         
-                                        cancelBttn.setOnAction(as -> {
+                                        cancelBttn.setOnAction(as -> 
+                                        {
                                         apptStage.close();
                                         });
-                                        
                                  });
                                         
                                         apptTable.setOnMouseClicked(aq -> {
-                                        
+                                
                                         Appointment myAppt = apptTable.getSelectionModel().getSelectedItem();
                                         myBorderPane.setLeft(myVB2);
                                         String sTime = myAppt.apptStartTime;
                                         String eTime = myAppt.apptEndTime;
                                         String loc = myAppt.apptLoc;
                                         String rea = myAppt.apptReason;
-                                        
                                         apptStartTimeCombo2.setValue(sTime);
                                         apptEndTimeCombo2.setValue(eTime);
                                         apptLocTxtFld2.setText(loc);
                                         apptReasonTxtFld2.setText(rea);
-                                    
-                                        updateAppointmentBttn.setOnAction(ax -> {
+                                        
+                                        updateAppointmentBttn.setOnAction(ax -> 
+                                        {
                                             try {
-                                                
                                                 String apptStartTime= apptStartTimeCombo2.getSelectionModel().getSelectedItem().toString();
                                                 String apptEndTime= apptEndTimeCombo2.getSelectionModel().getSelectedItem().toString();
                                                 //This needs to be changed to reflect the currentlu logged studentid
@@ -913,22 +943,17 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                                 Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                                             }
                                         });
-                                        
                                         cancelBttn.setOnAction(as -> {
                                         apptStage.close();
                                         });
                                     });
-                                        
-                                        
                                         apptStage.setScene(apptScene);
                                         apptStage.show();
                                 });
-                                
                                 this.setOnMouseEntered(a -> {
                                 this.setScaleX(1.1);
                                 this.setScaleY(1.1);
                                 });
-                                
                                 this.setOnMouseExited(a -> {
                                 this.setScaleX(1);
                                 this.setScaleY(1);
@@ -941,38 +966,35 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 this.setDisable(true);
                                     }
                                 int sId = loggedInStudent.getStudentId();
-                             
                                 String sql ="SELECT * FROM test.appointments WHERE studentId = "+ sId + ";";
                                 ObservableList<Appointment> myAppts = FXCollections.observableArrayList();
-                                
-                                try {
-                                myAppts = readAppointments(sql);
-                                 } 
-                                catch (SQLException ex) {
-                                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                                    try 
+                                    {
+                                    myAppts = readAppointments(sql);
+                                    } 
+                                    catch (SQLException ex) 
+                                    {
+                                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                                     }
-    
-                                for(Appointment myAppt : myAppts){
+                                for(Appointment myAppt : myAppts)
+                                {
                                  String date1 = myAppt.apptDate;
                                  String date = item.toString();
-                                if(date.equals(date1))
-                               { 
-                                   ImageView myView = new ImageView(imageStar);
-                                   HBox myBox = new HBox(2);
-                                   Label myLbl = new Label("asj");
-                                   myBox.setAlignment(Pos.TOP_LEFT);
-                                   myBox.getChildren().addAll(myView,myLbl);
-                                   setGraphic(myBox);
-                                   //this.setGraphic(myView);
-                                   
-                                  setTooltip(new Tooltip(
-                                "You have appointments today"));
-                                  setStyle("-fx-background-color: #ac521a;");
-                               }
+                                    if(date.equals(date1))
+                                       { 
+                                        ImageView myView = new ImageView(imageStar);
+                                        HBox myBox = new HBox(2);
+                                        Label myLbl = new Label("asj");
+                                        myBox.setAlignment(Pos.TOP_LEFT);
+                                        myBox.getChildren().addAll(myView,myLbl);
+                                        setGraphic(myBox);
+                                        //this.setGraphic(myView);
+                                        setTooltip(new Tooltip(
+                                         "You have appointments today"));
+                                        setStyle("-fx-background-color: #ac521a;");
+                                       }
                                  }
                                 this.setContentDisplay(ContentDisplay.TOP);
-                                
-                        
                                 DayOfWeek day = DayOfWeek.from(item);
                                 if (day == DayOfWeek.SATURDAY||day == DayOfWeek.SUNDAY)
                                    {
@@ -985,18 +1007,12 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                     };
                  //Set custom cells to datePicker
        datePicker.setDayCellFactory(dayCellFactory1);
-       
        DatePickerSkin datePickerSkin = new DatePickerSkin(datePicker);
        Node popupContent = datePickerSkin.getPopupContent();
-       
-       
        borderPane.setCenter(popupContent);
        borderPane.setLeft(monthlyHbox);
        borderPane.setRight(monthlyHbox2);
         });
-        
-        
-               
 //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     primaryStage.setTitle("VaqPack");
     primaryStage.setScene(scene);
@@ -1030,7 +1046,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             myTableView.getColumns().setAll(appointmentId,studentId,apptDate,apptStartTime,apptEndTime,apptLoc,apptReason);
            return myTableView;
  }
- 
  public void updateRecords(String m)
     {
     try {
@@ -1143,10 +1158,8 @@ public TableView viewCourses(String m){
             TableColumn<Course,Integer> profId= new TableColumn<>("profId");
             profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
             myTableView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
-
             return myTableView;
   }
-
 public TableView viewRegCourses(String m){
             ObservableList<Registered> registeredList = FXCollections.observableArrayList();
             TableView<Registered> myTableView = new TableView<Registered>();
@@ -1165,10 +1178,8 @@ public TableView viewRegCourses(String m){
             myTableView.getColumns().setAll(regId,courseId,studentId);
             return myTableView;
   }
-
   public ObservableList readRegCourses(String m) throws SQLException
     {
-        
         myRes = myStat.executeQuery(m);
         ObservableList<Registered> registeredList = FXCollections.observableArrayList();
         while(myRes.next())
@@ -1181,7 +1192,6 @@ public TableView viewRegCourses(String m){
         }
         return registeredList;
     }
- 
  public ObservableList readCourses(String m) throws SQLException
     {
         String sql = "SELECT * FROM `test`.`students`";
@@ -1203,6 +1213,23 @@ public TableView viewRegCourses(String m){
         return CourseList;
     }
 
+public void unregisterCourse(Course course) throws SQLException
+{
+    String sql = ("SELECT * FROM test.appointments WHERE studentId = '" +loggedInStudent.getStudentId() + "' AND apptStartTime = '" + course.getStartTime() + "' AND apptEndTime = '" + course.getEndTime() + "' AND apptLoc = '" + course.getClassRoom()  +"';");
+    ObservableList<Appointment> apptList = readAppointments(sql);
+    
+    for (int i = 0; i < apptList.size(); i++) 
+    {
+        String delete = "DELETE FROM `test`.`appointments` WHERE `appointmentId`='" + apptList.get(i).appointmentId + "';";
+        updateRecords(delete);
+    }
+    
+    String unreg = "DELETE FROM test.registeredstudents WHERE courseId=" + course.getCourseId()+ " AND studentId =" + loggedInStudent.getStudentId() + " ;";
+    updateRecords(unreg);
+} 
+ 
+ 
+ 
 public void registerCourse(Course course)
 {
 LocalDate semesterStart = LocalDate.of(2016,1,15);
@@ -1214,12 +1241,11 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
     DateTimeFormatter formatter =
     DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDate myDate = LocalDate.parse(date,formatter);
-
     String regString = ("INSERT INTO `test`.`registeredstudents` (`courseId`, `studentId`) VALUES ('"+ course.getCourseId() + "', '"+ loggedInStudent.getStudentId() +"');");    
     updateRecords(regString);
     for (int j = 0; j <numDays/7 + 1; j++) 
         {
-        Appointment myAppt = new Appointment(j,loggedInStudent.getStudentId(),myDate.toString(),course.getStartTime(),course.getEndTime(),course.getClassRoom(),"Class Appointment");
+        Appointment myAppt = new Appointment(j,loggedInStudent.getStudentId(),myDate.toString(),course.getStartTime(),course.getEndTime(),course.getClassRoom(),"Class: "+ course.getCourseName());
         appointmentList.add(myAppt);
         myDate = myDate.plusDays(7);
         }
@@ -1227,10 +1253,8 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
        String sql = ("INSERT INTO `test`.`appointments` (`studentId`, `apptDate`, `apptStartTime`, `apptEndTime`, `apptLoc`, `apptReason`) VALUES ('" + loggedInStudent.getStudentId() + "', '" + appointmentList.get(i).apptDate + "', '" + appointmentList.get(i).apptStartTime + "', '" + appointmentList.get(i).apptEndTime + "', '" +appointmentList.get(i).apptLoc+ "', '" + appointmentList.get(i).apptReason + "');");
        updateRecords(sql);
     }
-    
 }
-
-  public void addTimeToGrid(Object timeIncrement)
+public void addTimeToGrid(Object timeIncrement)
 {
         grid.setGridLinesVisible(false);
         int time = Integer.parseInt(timeIncrement.toString());
@@ -1241,7 +1265,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         TimeTicks timeTicks = new TimeTicks(time);
         timeTicks.generateTicks();
         String[] timeIntervals= timeTicks.getTimeTicksStrings();
-        
         ObservableList<Appointment> myApptList = FXCollections.observableArrayList() ;
         ObservableList<Appointment> fiveDayList = FXCollections.observableArrayList() ;
         String sql = "SELECT * FROM test.appointments WHERE studentId =" + loggedInStudent.getStudentId()+"";
@@ -1250,7 +1273,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         } catch (SQLException ex) {
             Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         Label timeLbl = new Label("Time");
         LocalDate today = LocalDate.now();
         String todayDay = today.getDayOfWeek().toString();
@@ -1267,13 +1289,12 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         LocalDate fourFromToday = today.plusDays(4);
         String fourFromTodayDay = fourFromToday.getDayOfWeek().toString();
         Label fourFromTodayDayLbl = new Label(fourFromTodayDay);
-       for (int i = 0; i < myApptList.size(); i++)
+        for (int i = 0; i < myApptList.size(); i++)
         {
         String date = myApptList.get(i).apptDate;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate myDate = LocalDate.parse(date,formatter);
-      
-            if (myDate.isAfter(today) && myDate.isBefore(fourFromToday) && myApptList.get(i).getApptReason().equals("Class Appointment")) 
+           if (myDate.equals(today)|| myDate.isAfter(today) && myDate.isBefore(fourFromToday) || myDate.equals(fourFromToday) && myApptList.get(i).getApptReason().startsWith("Class")) 
                 {
                 fiveDayList.add(myApptList.get(i));
                 }
@@ -1284,26 +1305,19 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
        grid.addColumn(3, twoFromTodayDayLbl);  
        grid.addColumn(4, threeFromTodayDayLbl);  
        grid.addColumn(5, fourFromTodayDayLbl);  
-       
        for (int i = 0; i < fiveDayList.size(); i++) 
        {
-           
-           String locStr = fiveDayList.get(i).apptLoc;
+           String locStr = " "+fiveDayList.get(i).apptLoc + " " + fiveDayList.get(i).apptReason;
            String startTime = fiveDayList.get(i).apptStartTime;
            String endTime = fiveDayList.get(i).apptEndTime;
            String date = fiveDayList.get(i).apptDate;
-           System.out.println("Date is " + date + "\t" + "AppointmentId: "+ fiveDayList.get(i).appointmentId + "\t" + "Location" + fiveDayList.get(i).apptLoc);
            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
            LocalDate myDate = LocalDate.parse(date,formatter);
            String myDateDay = myDate.getDayOfWeek().toString();
-           
            int startTimeIndex = getIndex(timeIntervals,startTime);
            int endTimeIndex = getIndex(timeIntervals,endTime);
-           System.out.println("Starttimeindex: "+startTimeIndex + "EndTImeIndex: "+ endTimeIndex);
-           
            int count = endTimeIndex - startTimeIndex;
-           System.out.println("count" + count);
-       if(startTimeIndex > 0 && endTimeIndex > 0)
+        if(startTimeIndex > 0 && endTimeIndex > 0)
         {
            if (myDateDay.equals(todayDay)) 
            {
@@ -1311,7 +1325,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                 {
                     Label  locLbl = new Label(locStr);
                     grid.add(locLbl, 1, j);
-                    
                 }
             }
            if (myDateDay.equals(oneFromTodayDay)) 
@@ -1320,7 +1333,7 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                 {
                     Label  locLbl = new Label(locStr);
                     grid.add(locLbl, 2, j);
-                    }
+                }
             }
            if (myDateDay.equals(twoFromTodayDay)) 
            {
@@ -1330,7 +1343,7 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                     grid.add(locLbl, 3, j);
                 }
             }
-           if (myDateDay.equals(threeFromTodayDay)) 
+            if (myDateDay.equals(threeFromTodayDay)) 
            {
                Label  locLbl = new Label(locStr);
                  for (int j = startTimeIndex; j <= endTimeIndex; j++)
@@ -1338,7 +1351,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                     grid.add(locLbl, 4, j);
                 }
             }
-           
            if (myDateDay.equals(fourFromTodayDay)) 
            {
                  for (int j = startTimeIndex; j <= endTimeIndex; j++)
@@ -1348,15 +1360,12 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                 }
             }
        }
-       
        else
        {
-       System.out.println("Does it get here");
        String[] splitStartTime = sSplitter(startTime);
        String[] splitEndTime = sSplitter(endTime);
        int startTimeFuzzyIndex = getFuzzyIndex(splitStartTime,timeIntervals,time);
        int endTimeFuzzyIndex = getFuzzyIndex(splitEndTime,timeIntervals,time);
-           System.out.println("StartTimeFuzzyIndex " + startTimeFuzzyIndex + "EndTimeFuzzyIndex: " + startTimeFuzzyIndex);
        if(startTimeFuzzyIndex > 0 && endTimeFuzzyIndex > 0)
         {
            if (myDateDay.equals(todayDay)) 
@@ -1365,7 +1374,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                 {
                     Label  locLbl = new Label(locStr);
                     grid.add(locLbl, 1, j);
-                
                 }
             }
            if (myDateDay.equals(oneFromTodayDay)) 
@@ -1373,9 +1381,7 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
                 for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
-                    grid.add(locLbl, 2, j);
-                    
-                }
+                    grid.add(locLbl, 2, j);                }
             }
            if (myDateDay.equals(twoFromTodayDay)) 
            {
@@ -1437,7 +1443,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         }
      grid.setGridLinesVisible(true);      
     }
-  
    public int getIndex(String arr[],String s)
     {
       for(int i = 0; i < arr.length; i++){
@@ -1446,10 +1451,8 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
         }
       return -1;
     }
-
    public int getFuzzyIndex (String splitArray[],String intervalArray[],int time)
 {
-    
     TimeTicks timeTicks = new TimeTicks(time);
     timeTicks.generateTicks();
     intervalArray= timeTicks.getTimeTicksStrings();
@@ -1460,7 +1463,6 @@ ObservableList<Appointment> appointmentList = FXCollections.observableArrayList(
        {        
          index = i+1;
        }
-       
    }
 return index;
 }
