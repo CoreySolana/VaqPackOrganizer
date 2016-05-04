@@ -99,6 +99,8 @@ public class VaqPackOrganizer extends Application {
     Button newCourseBttn = new Button("New Course");
     Button regBttn = new Button("Reg for Course");
     Button myCoursesBttn = new Button("My Courses");
+    Button modifyCourseBttn = new Button ("Modify Course");
+    
     ToolBar toolBar; 
     ColumnConstraints column;      
     RowConstraints row;      
@@ -465,11 +467,86 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         userManagerBttn.setOnAction(aq -> {
         borderPane.setCenter(null);
         
-        HBox buttonBox = new HBox(10);
-        buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn);
+        VBox buttonBox = new VBox(10);
+        buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn,modifyCourseBttn);
         
         borderPane.setLeft(buttonBox);
+    
+        //----------------------------------------------------------Modify Courses-----------------------------------------------
         
+    modifyCourseBttn.setOnAction(ag -> {
+        String mod = ("SELECT * FROM test.courses;");
+        TableView<Course> courseView = viewCourses(mod);
+        borderPane.setCenter(courseView);
+        
+        courseView.setOnMouseClicked(ao -> {
+            Stage modCourseStage = new Stage();
+            BorderPane myPane = new BorderPane();
+            Scene modCourseScene = new Scene(myPane,500,500);
+            modCourseStage.setScene(modCourseScene);
+            TimeTicks timeTicks = new TimeTicks(30);
+            timeTicks.generateTicks();
+            String[] timeIntervals= timeTicks.getTimeTicksStrings();
+            ObservableList<String> list = FXCollections.observableArrayList(timeIntervals);
+            ComboBox apptStartTimeCombo = new ComboBox();
+            ComboBox apptEndTimeCombo = new ComboBox();
+            apptStartTimeCombo.setItems(list);
+            apptEndTimeCombo.setItems(list);
+            Course thisCourse = courseView.getSelectionModel().getSelectedItem();
+            apptStartTimeCombo.setValue(thisCourse.getStartTime());
+            apptEndTimeCombo.setValue(thisCourse.getEndTime());
+            
+            Label courseSplash = new Label("Modify course");
+            Label courseNameLbl = new Label("Enter Course Name");
+            Label courseClassLbl = new Label("Enter Class Room");
+            Label courseStartDateLbl = new Label("Pick Start Date");
+            Label courseStartTimeLbl = new Label("Pick Start Time");
+            Label courseEndTimeLbl = new Label("Pick End Time");
+            Label courseDescriptionLbl = new Label("Enter Course Description");
+            Button courseSubmit = new Button ("Modify Course");
+            TextField courseNameTxt = new TextField();
+            courseNameTxt.setText(thisCourse.getCourseName());
+            TextField courseClassTxt = new TextField();
+            courseClassTxt.setText(thisCourse.getClassRoom());
+            
+            TextField courseDescriptionTxt = new TextField();
+            courseDescriptionTxt.setText(thisCourse.getCourseDesc());
+            String date = thisCourse.getStartDate();
+            DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate myDate = LocalDate.parse(date,formatter);
+            DatePicker startDatePicker = new DatePicker(myDate);
+            VBox myFlowPane = new VBox(5);
+            VBox box = new VBox();
+            box.setMaxHeight(100);
+            myFlowPane.getChildren().addAll(courseSplash,courseNameLbl,courseNameTxt,courseClassLbl,courseClassTxt,courseStartDateLbl,startDatePicker,courseStartTimeLbl,apptStartTimeCombo,courseEndTimeLbl,apptEndTimeCombo,courseDescriptionLbl,courseDescriptionTxt,courseSubmit);
+            myPane.setCenter(myFlowPane);
+             //Listner for Course Submit 
+                courseSubmit.setOnAction(ap -> {
+                String courseName = courseNameTxt.getText();
+                String courseLocation = courseClassTxt.getText();
+                String startDate =  startDatePicker.getValue().toString();
+                String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
+                String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
+                String courseDescription = courseDescriptionTxt.getText();
+            
+                //Need to grab profId from a table
+                int profId = 2;
+                String mySql = ("UPDATE `test`.`courses` SET `courseName`='" + courseName + "', `classRoom`='" + courseLocation + "', `startDate`='" + startDate +"', `startTime`='" + courseStartTime +"', `endTime`='" + courseEndTime + "', `courseDesc`='" + courseDescription +" ', `profId`='4' WHERE `courseId`='" + thisCourse.getCourseId()+"';");
+                     try {  
+                        myStat.executeUpdate(mySql);
+                            } catch (SQLException ex) {
+                            Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                     
+                     String mod2 = ("SELECT * FROM test.courses;");
+                     TableView<Course> courseView2 = viewCourses(mod);
+                     borderPane.setCenter(courseView2);
+                        });
+               modCourseStage.show();
+            });
+        
+        });
         
         
         
@@ -481,14 +558,12 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         ObservableList<Registered> myRegCourses = FXCollections.observableArrayList();
         ObservableList<Course> myCourses = FXCollections.observableArrayList();
         TableView<Course> myCourseView = new TableView<Course>();
-        
+        borderPane.setCenter(myCourseView);
         try {
            myRegCourses = readRegCourses(sql);
         } catch (SQLException ex) {
             Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
          for (int i = 0; i < myRegCourses.size(); i++) {
              System.out.println(myRegCourses.get(i).getCourseId());
              
@@ -503,7 +578,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 myCourses = FXCollections.concat(myCourses,holder);
              }
             myCourseView.setItems(myCourses);
-            
             TableColumn<Course,Integer> courseId= new TableColumn<>("courseId");
             courseId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("courseId"));
             TableColumn<Course,String> courseName = new TableColumn<>("courseName");
@@ -521,9 +595,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             TableColumn<Course,Integer> profId= new TableColumn<>("profId");
             profId.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
             myCourseView.getColumns().setAll(courseId,courseName,classRoom,startDate,startTime,endTime,courseDesc,profId);
-
             
-            borderPane.setCenter(myCourseView);
         });
         
          //------------------------------------------------------------Register For Course Button---------------------------------------
