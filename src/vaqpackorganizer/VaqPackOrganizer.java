@@ -779,6 +779,91 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         HBox monthlyHbox2 = new HBox();
         monthlyHbox.prefHeightProperty().bind(toolBar.prefHeightProperty());
         Button newApptNoDateBttn = new Button("Create Appointment");
+        //---------------------------------SETUP MONTH VISUAL---------------------------------------------------------------------------------------------
+        LocalDate date = LocalDate.now();
+        String month = date.getMonth().toString();
+        String sql = "SELECT * FROM test.appointments WHERE studentId = " + loggedInStudent.getStudentId() + ";";
+        ObservableList<Appointment> allAppts = FXCollections.observableArrayList();
+        ObservableList<Appointment> thisMonthAppts = FXCollections.observableArrayList();
+        ObservableList<Appointment> mondayAppts = FXCollections.observableArrayList();
+        ObservableList<Appointment> tuesdayAppts = FXCollections.observableArrayList();
+        ObservableList<Appointment> wednesdayAppts = FXCollections.observableArrayList();
+        ObservableList<Appointment> thursdayAppts = FXCollections.observableArrayList();
+        ObservableList<Appointment> fridayAppts = FXCollections.observableArrayList();
+            try 
+            {
+                allAppts = readAppointments(sql);
+            } catch (SQLException ex)
+            
+            {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            String monday = "MONDAY";
+            String tuesday = "TUESDAY";
+            String wednesday = "WEDNESDAY";
+            String thursday = "THURSDAY";
+            String friday = "FRIDAY";
+            for (int i = 0; i < allAppts.size(); i++) 
+            {
+            String thisDate = allAppts.get(i).getApptDate();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate myDate = LocalDate.parse(thisDate,formatter);
+          
+            String thisMonth = myDate.getMonth().toString();
+                if (thisMonth.equals(month)) 
+                {
+                Appointment thisAppt = allAppts.get(i);
+                thisMonthAppts.add(thisAppt);
+                }
+            }
+          
+            for (int i = 0; i < thisMonthAppts.size(); i++) 
+            {
+            
+            Appointment myAppt = thisMonthAppts.get(i);
+            String thisDate = myAppt.getApptDate();
+            System.out.println(thisDate);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate myDate = LocalDate.parse(thisDate,formatter);
+            String thisDay = myDate.getDayOfWeek().toString();
+            System.out.println(thisDay); 
+                
+                switch (thisDay)
+                {
+                    case "MONDAY":
+                mondayAppts.add(myAppt);
+                        break;
+                   
+                    case "TUESDAY":
+                tuesdayAppts.add(myAppt);
+                        break;
+                        
+                    case "WEDNESDAY":
+                wednesdayAppts.add(myAppt);
+                        break;
+                        
+                    case "THURSDAY":
+                thursdayAppts.add(myAppt);
+                        break;
+                    
+                    case "FRIDAY":
+                fridayAppts.add(myAppt);
+                        break;
+                }
+                
+                
+                
+             }
+            
+            ObservableList<PieChart.Data> pieChartData2 = FXCollections.observableArrayList(
+                new PieChart.Data(monday,  mondayAppts.size()),
+                new PieChart.Data(tuesday, tuesdayAppts.size()),
+                new PieChart.Data(wednesday, wednesdayAppts.size()),
+                new PieChart.Data(thursday, thursdayAppts.size()),
+                new PieChart.Data(friday, fridayAppts.size()));
+        
+        final PieChart chart2 = new PieChart(pieChartData2);
+        borderPane.setRight(chart2);
         //-------------------------------------------------NEW APPOINTMENT BUTTON NO DATE (MUST SELECT DATE FROM A DATEPICKER)----------------------------------
             //newApptNoDateBttn listener
         {
@@ -1071,7 +1156,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
        Node popupContent = datePickerSkin.getPopupContent();
        borderPane.setCenter(popupContent);
        borderPane.setLeft(monthlyHbox);
-       borderPane.setRight(monthlyHbox2);
+       
         });
 //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
     primaryStage.setTitle("VaqPack");
