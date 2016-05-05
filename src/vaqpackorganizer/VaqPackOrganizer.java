@@ -30,6 +30,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -445,6 +446,64 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         borderPane.setBottom(myHbox);
         borderPane.setCenter(grid);    
         grid.setHgrow(grid,Priority.ALWAYS);
+        
+        LocalDate today =  LocalDate.now();
+        LocalDate today1 = LocalDate.now().plusDays(1);
+        LocalDate today2 = LocalDate.now().plusDays(2);
+        LocalDate today3 = LocalDate.now().plusDays(3);
+        LocalDate today4 = LocalDate.now().plusDays(4);
+        
+        String sqla = ("SELECT * FROM test.appointments WHERE studentId = '" +loggedInStudent.getStudentId() + "' AND apptDate = '" + today.toString() + "';");
+        String sqlb = ("SELECT * FROM test.appointments WHERE studentId = '" +loggedInStudent.getStudentId() + "' AND apptDate = '" + today1.toString() + "';");
+        String sqlc = ("SELECT * FROM test.appointments WHERE studentId = '" +loggedInStudent.getStudentId() + "' AND apptDate = '" + today2.toString() + "';");
+        String sqld = ("SELECT * FROM test.appointments WHERE studentId = '" +loggedInStudent.getStudentId() + "' AND apptDate = '" + today3.toString() + "';");
+        String sqle = ("SELECT * FROM test.appointments WHERE studentId = '" +loggedInStudent.getStudentId() + "' AND apptDate = '" + today4.toString() + "';");
+        
+        ObservableList<Appointment> lista =FXCollections.observableArrayList() ;
+            try {
+                lista = readAppointments(sqla);
+                System.out.println(lista.size());
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        ObservableList<Appointment> listb = FXCollections.observableArrayList();
+            try {
+                listb = readAppointments(sqlb);
+                System.out.println(listb.size());
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        ObservableList<Appointment> listc = FXCollections.observableArrayList();
+            try {
+                listc = readAppointments(sqlc);
+                System.out.println(listc.size());
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        ObservableList<Appointment> listd = FXCollections.observableArrayList();
+            try {
+                listd = readAppointments(sqld);
+                System.out.println(listd.size());
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        ObservableList<Appointment> liste = FXCollections.observableArrayList();
+            try {
+                liste = readAppointments(sqle);
+                System.out.println(liste.size());
+            } catch (SQLException ex) {
+                Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new PieChart.Data(today.getDayOfWeek().toString(),  lista.size()),
+                new PieChart.Data(today1.getDayOfWeek().toString(), listb.size()),
+                new PieChart.Data(today2.getDayOfWeek().toString(), listc.size()),
+                new PieChart.Data(today3.getDayOfWeek().toString(), listd.size()),
+                new PieChart.Data(today4.getDayOfWeek().toString(), liste.size()));
+        
+        final PieChart chart = new PieChart(pieChartData);
+        borderPane.setRight(chart);
          });
         //User Management Button Listener
         userManagerBttn.setOnAction(aq -> {
@@ -452,7 +511,8 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         VBox buttonBox = new VBox(10);
         buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn,modifyCourseBttn,unregCourseBttn);
         borderPane.setLeft(buttonBox);
-        //---------------------------------------------Unregister for a Course Bttn----------------------------------------------
+        
+//---------------------------------------------Unregister for a Course Bttn----------------------------------------------
         
         unregCourseBttn.setOnAction(ai -> {
         
