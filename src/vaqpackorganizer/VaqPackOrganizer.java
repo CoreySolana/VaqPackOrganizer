@@ -35,6 +35,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DateCell;
@@ -56,12 +57,15 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -75,6 +79,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerDateModel;
 
 public class VaqPackOrganizer extends Application {
     
@@ -93,6 +99,7 @@ public class VaqPackOrganizer extends Application {
     Button monthlyScheduleBttn;
     Button schoolInfoBttn;
     Button newCourseBttn = new Button("New Course");
+    ToggleButton userManagerBttn;
     Button regBttn = new Button("Reg for Course");
     Button myCoursesBttn = new Button("My Courses");
     Button modifyCourseBttn = new Button ("Modify Course");
@@ -137,8 +144,6 @@ public class VaqPackOrganizer extends Application {
         loginGridPane.add(newUBtn, 1, 3);
         loginGridPane.add(messageLbl, 1, 2);
         Reflection reflect = new Reflection ();
-        reflect.setFraction(.85);
-        loginGridPane.setEffect(reflect);
         Text loginTxt = new Text("VaqPaq Login");
         loginTxt.setFont(Font.font("Courier New", FontWeight.BOLD, 28));
         loginHbox.getChildren().add(loginTxt);
@@ -261,6 +266,17 @@ public class VaqPackOrganizer extends Application {
         Scene scene = new Scene(borderPane, 1200, 650);
         borderPane.setMinSize(0,0);
         borderPane.setStyle("-fx-border-color: black;");
+        ColorPicker bgPicker = new ColorPicker();
+     
+        ColorPicker textPicker = new ColorPicker();
+        textPicker.setValue(Color.BLACK);
+        ComboBox fontPicker = new ComboBox();
+        
+       
+        fontPicker.getItems().addAll(javafx.scene.text.Font.getFamilies());
+        fontPicker.setValue("Arial Black");
+        fontTracking = new SimpleObjectProperty<Font>(Font.font(fontPicker.getValue().toString(),8));
+    
         grid = new GridPane();
         weekImgView.setImage(weekImg);
         weekImgView.setFitHeight(100);
@@ -269,7 +285,8 @@ public class VaqPackOrganizer extends Application {
         weekImgView.smoothProperty();
         
         //Create togglebuttons
-        ToggleButton userManagerBttn = new ToggleButton("Course Management", new ImageView(imageDecline));
+        userManagerBttn = new ToggleButton("Course Management", new ImageView(imageDecline));
+        userManagerBttn.setTextFill(textPicker.getValue());
         userManagerBttn.setContentDisplay(ContentDisplay.TOP);
         ToggleButton weeklyScheduleBttn = new ToggleButton("Weekly Schedule", new ImageView(imageDecline));
         weeklyScheduleBttn.setContentDisplay(ContentDisplay.TOP);
@@ -277,6 +294,32 @@ public class VaqPackOrganizer extends Application {
         monthlyScheduleBttn.setContentDisplay(ContentDisplay.TOP);
         ToggleButton schoolInfoBttn = new ToggleButton("School Information",new ImageView(imageDecline));
         schoolInfoBttn.setContentDisplay(ContentDisplay.TOP);
+        Label bgLbl = new Label("BG Color");
+        
+        Label textColorLbl = new Label("Text Color");
+        Label fontLbl = new Label("Font");
+        bgLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
+        textColorLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
+        fontLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
+        
+        VBox themes = new VBox(10);
+        themes.getChildren().addAll(bgLbl,bgPicker,textColorLbl,textPicker,fontLbl,fontPicker);
+        
+        borderPane.setLeft(themes);
+             bgPicker.setOnAction(ad -> 
+             {
+                Color colorPicker = bgPicker.getValue();
+                Background myBg = new Background(new BackgroundFill(colorPicker,CornerRadii.EMPTY, Insets.EMPTY));
+                borderPane.setBackground(myBg);
+            });
+        
+        textPicker.setOnAction(ad -> 
+             {
+                Color colorPicker = textPicker.getValue();
+                userManagerBttn.setTextFill(colorPicker);
+            });
+        
+        
         
         // Create toggle group and add toggle buttons to group
         ToggleGroup toolBarGroup = new ToggleGroup();   
@@ -335,11 +378,10 @@ public class VaqPackOrganizer extends Application {
         
         }
     //Bindings
-        fontTracking = new SimpleObjectProperty<Font>(Font.font(8));
-        weeklyScheduleBttn.fontProperty().bind(fontTracking);
-        schoolInfoBttn.fontProperty().bind(fontTracking);   
-        monthlyScheduleBttn.fontProperty().bind(fontTracking);
-        userManagerBttn.fontProperty().bind(fontTracking);
+        weeklyScheduleBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        schoolInfoBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        monthlyScheduleBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        
         //Binding the toolbar size to the border pane
         toolBar.setMinSize(0, 0);        
         toolBar.prefHeightProperty().bind(borderPane.heightProperty().divide(6));
@@ -356,24 +398,9 @@ public class VaqPackOrganizer extends Application {
         userManagerBttn.prefHeightProperty().bind(toolBar.heightProperty());
         //Bind the borderPane to the scene
         borderPane.prefWidthProperty().bind(scene.widthProperty());
+    
         
         //Listeners for both height and width of primary scene// resizes buttons & toolbar & text
-        scene.widthProperty().addListener(new ChangeListener<Number>()
-        {
-        @Override
-        public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth)
-        {
-      fontTracking.set(Font.font(newWidth.doubleValue() / 90));
-              }
-        });
-        scene.heightProperty().addListener(new ChangeListener<Number>()
-        {
-        @Override
-        public void changed(ObservableValue<? extends Number> observableValue, Number oldHeight, Number newHeight)
-        {
-      fontTracking.set(Font.font(newHeight.doubleValue() / 60));
-              }
-        });
         
  //Setup times(ticks), these objects are returned by the ToggleButton when pressed and then passed on to the generateTicks function
  Object object = 0;
@@ -386,14 +413,17 @@ public class VaqPackOrganizer extends Application {
  //Create toggleButtons for bottom 3 button toolBar
  ToggleButton tb1 = new ToggleButton("Bi-Hours");
  //Binding the ToggleButton (tgb)
- tb1.fontProperty().bind(fontTracking);
+ 
+ tb1.textFillProperty().bind(userManagerBttn.textFillProperty());
  //This is where you set the togglebuttons UserData proptertery which in this instance is an object casted as an int 
  tb1.setUserData(biHours);
  ToggleButton tb2 = new ToggleButton("Hours");
+ tb2.textFillProperty().bind(userManagerBttn.textFillProperty());
  tb2.setUserData(hourly);
- tb2.fontProperty().bind(fontTracking);
+ 
  ToggleButton tb3 = new ToggleButton("Quarters");
- tb3.fontProperty().bind(fontTracking);
+ tb3.textFillProperty().bind(userManagerBttn.textFillProperty());
+ 
  tb3.setUserData(quarters);
  tb1.setAlignment(Pos.CENTER);
  tb2.setAlignment(Pos.CENTER);
@@ -402,6 +432,7 @@ public class VaqPackOrganizer extends Application {
  tb1.setToggleGroup(group);
  tb2.setToggleGroup(group);
  tb3.setToggleGroup(group);   
+ 
  
  //Bind button h and w to Toolbar
  ToolBar weeklyViewToolBar = new ToolBar(new Separator(),new Separator(),tb1,new Separator(),tb2,new Separator(),tb3,new Separator(),new Separator());
@@ -501,16 +532,80 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 new PieChart.Data(today2.getDayOfWeek().toString(), listc.size()),
                 new PieChart.Data(today3.getDayOfWeek().toString(), listd.size()),
                 new PieChart.Data(today4.getDayOfWeek().toString(), liste.size()));
-        
         final PieChart chart = new PieChart(pieChartData);
-        borderPane.setRight(chart);
+        
+        
+    chart.prefWidthProperty().bind(borderPane.widthProperty().divide(4));
+        final Label caption = new Label("");
+        caption.setTextFill(Color.DARKORANGE);
+        caption.setStyle("-fx-font: 24 arial;");
+
+            for (final PieChart.Data data : chart.getData()) 
+            {
+            data.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED,
+            new EventHandler<MouseEvent>() {
+                @Override public void handle(MouseEvent e) {
+                    caption.setTranslateX(e.getSceneX());
+                    caption.setTranslateY(e.getSceneY());
+                    caption.setText(String.valueOf(data.getPieValue()) + "%");
+                 }
+            });
+            }
+        
+        
+        
+        VBox chartBox = new VBox();
+        chartBox.getChildren().add(chart);
+        borderPane.setRight(chartBox);
          });
+        
+        
+        
+        fontPicker.setOnAction(az -> 
+            {
+           
+            String thisFont = fontPicker.getValue().toString();
+            fontTracking = new SimpleObjectProperty<Font>(Font.font(thisFont,8));
+    
+            weeklyScheduleBttn.fontProperty().bind(fontTracking);
+            schoolInfoBttn.fontProperty().bind(fontTracking);   
+            monthlyScheduleBttn.fontProperty().bind(fontTracking);
+            userManagerBttn.fontProperty().bind(fontTracking);
+            tb1.fontProperty().bind(fontTracking);
+            tb2.fontProperty().bind(fontTracking);
+            tb3.fontProperty().bind(fontTracking);
+            bgLbl.fontProperty().bind(fontTracking);
+            textColorLbl.fontProperty().bind(fontTracking);
+            fontLbl.fontProperty().bind(fontTracking);
+          
+            scene.widthProperty().addListener(new ChangeListener<Number>()
+                {
+                @Override
+                public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth)
+                {
+                fontTracking.set(Font.font(thisFont,newWidth.doubleValue() / 90));
+                      }
+                });
+                scene.heightProperty().addListener(new ChangeListener<Number>()
+                {
+                @Override
+                public void changed(ObservableValue<? extends Number> observableValue, Number oldHeight, Number newHeight)
+                {
+                fontTracking.set(Font.font(thisFont,newHeight.doubleValue() / 60));
+                      }
+                });
+            });
+        
+ 
+        
+        
+        
         //User Management Button Listener
         userManagerBttn.setOnAction(aq -> {
         borderPane.setCenter(null);
         VBox buttonBox = new VBox(10);
         buttonBox.getChildren().addAll(regBttn,newCourseBttn,myCoursesBttn,modifyCourseBttn,unregCourseBttn);
-        borderPane.setLeft(buttonBox);
+        borderPane.setRight(buttonBox);
         
 //---------------------------------------------Unregister for a Course Bttn----------------------------------------------
         
@@ -614,11 +709,20 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             Label courseDescriptionLbl = new Label("Enter Course Description");
             Button courseSubmit = new Button ("Modify Course");
             TextField courseNameTxt = new TextField();
+            courseNameTxt.setMinWidth(0);
+            courseNameTxt.setMaxWidth(250);
+        
             courseNameTxt.setText(thisCourse.getCourseName());
             TextField courseClassTxt = new TextField();
+            courseClassTxt.setMinWidth(0);
+            courseClassTxt.setMaxWidth(250);
+        
             courseClassTxt.setText(thisCourse.getClassRoom());
             TextField courseDescriptionTxt = new TextField();
             courseDescriptionTxt.setText(thisCourse.getCourseDesc());
+            courseDescriptionTxt.setMinWidth(0);
+            courseDescriptionTxt.setMaxWidth(250);
+        
             String date = thisCourse.getStartDate();
             DateTimeFormatter formatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -700,12 +804,15 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         regBttn.setOnAction(ay ->{
         String sql = "SELECT * FROM test.courses";
         TableView<Course> courseView = viewCourses(sql);
-        FlowPane regCoursePane = new FlowPane();
+        HBox regBox = new HBox(5);
+        VBox regCoursePane = new VBox(5);
         Label regCourseLbl = new Label("Choose a course to register for");
         Button regConfirmBttn = new Button("Register");
         Button regCancelBttn = new Button("Cancel");
+        
+        regBox.getChildren().addAll(regCourseLbl,regConfirmBttn,regCancelBttn);
         //Confirm/Cancel Button listeners
-        regCoursePane.getChildren().addAll(regCourseLbl,regConfirmBttn,regCancelBttn,courseView);
+        regCoursePane.getChildren().addAll(courseView,regBox);
         borderPane.setCenter(regCoursePane);
         //Grabs Course Object
         courseView.setOnMouseClicked(as -> {
@@ -715,11 +822,12 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 {
                 registerCourse(myCourse);
                 });
-            regCancelBttn.setOnAction(ae -> 
-                {
-                //TODO Set back to page
-                });
+            
           });
+        regCancelBttn.setOnAction(ae -> 
+                {
+                borderPane.setCenter(null);
+                });
     });
         
         //-----------------------------------------------------------New Course Button-------------------------------------------------
@@ -743,12 +851,23 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         Label courseProfLbl = new Label("Choose Professor");
         Button courseSubmit = new Button ("Create Course");
         TextField courseNameTxt = new TextField();
+        courseNameTxt.setMinWidth(0);
+        courseNameTxt.setMaxWidth(250);
+        
         TextField courseClassTxt = new TextField();
+        courseClassTxt.setMinWidth(0);
+        courseClassTxt.setMaxWidth(250);
+        
         DatePicker startDatePicker = new DatePicker();
         TextField courseDescriptionTxt = new TextField();
+        courseDescriptionTxt.setMinWidth(0);
+        courseDescriptionTxt.setMaxWidth(250);
+        
         VBox myFlowPane = new VBox(5);
+        
         VBox box = new VBox();
         box.setMaxHeight(100);
+        //myFlowPane.setAlignment(Pos.CENTER);
         myFlowPane.getChildren().addAll(courseSplash,courseNameLbl,courseNameTxt,courseClassLbl,courseClassTxt,courseStartDateLbl,startDatePicker,courseStartTimeLbl,apptStartTimeCombo,courseEndTimeLbl,apptEndTimeCombo,courseDescriptionLbl,courseDescriptionTxt,courseSubmit);
         borderPane.setCenter(myFlowPane);
        //Listner for Course Submit 
@@ -863,7 +982,10 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                 new PieChart.Data(friday, fridayAppts.size()));
         
         final PieChart chart2 = new PieChart(pieChartData2);
-        borderPane.setRight(chart2);
+        chart2.prefWidthProperty().bind(borderPane.widthProperty().divide(4));
+        VBox chart2Box = new VBox();
+        chart2Box.getChildren().add(chart2);
+        borderPane.setRight(chart2Box);
         //-------------------------------------------------NEW APPOINTMENT BUTTON NO DATE (MUST SELECT DATE FROM A DATEPICKER)----------------------------------
             //newApptNoDateBttn listener
         {
@@ -1155,7 +1277,6 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
        DatePickerSkin datePickerSkin = new DatePickerSkin(datePicker);
        Node popupContent = datePickerSkin.getPopupContent();
        borderPane.setCenter(popupContent);
-       borderPane.setLeft(monthlyHbox);
        
         });
 //------------------------------------------------------------------TESTING AREA-------------------Create courses and students
@@ -1419,21 +1540,32 @@ public void addTimeToGrid(Object timeIncrement)
             Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
         }
         Label timeLbl = new Label("Time");
+        timeLbl.fontProperty().bind(fontTracking);
         LocalDate today = LocalDate.now();
         String todayDay = today.getDayOfWeek().toString();
         Label todayDayLbl = new Label(todayDay);
+        todayDayLbl.fontProperty().bind(fontTracking);
+        todayDayLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         LocalDate oneFromToday = today.plusDays(1);
         String oneFromTodayDay = oneFromToday.getDayOfWeek().toString();
         Label oneFromTodayDayLbl = new Label(oneFromTodayDay);
+        oneFromTodayDayLbl.fontProperty().bind(fontTracking);
+        oneFromTodayDayLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         LocalDate twoFromToday = today.plusDays(2);
         String twoFromTodayDay = twoFromToday.getDayOfWeek().toString();
         Label twoFromTodayDayLbl = new Label(twoFromTodayDay);
+        twoFromTodayDayLbl.fontProperty().bind(fontTracking);
+        twoFromTodayDayLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         LocalDate threeFromToday = today.plusDays(3);
         String threeFromTodayDay = threeFromToday.getDayOfWeek().toString();
         Label threeFromTodayDayLbl = new Label(threeFromTodayDay);
+        threeFromTodayDayLbl.fontProperty().bind(fontTracking);
+        threeFromTodayDayLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         LocalDate fourFromToday = today.plusDays(4);
         String fourFromTodayDay = fourFromToday.getDayOfWeek().toString();
         Label fourFromTodayDayLbl = new Label(fourFromTodayDay);
+        fourFromTodayDayLbl.fontProperty().bind(fontTracking);
+        fourFromTodayDayLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         for (int i = 0; i < myApptList.size(); i++)
         {
         String date = myApptList.get(i).apptDate;
@@ -1469,6 +1601,8 @@ public void addTimeToGrid(Object timeIncrement)
                 for (int j = startTimeIndex; j <= endTimeIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 1, j);
                 }
             }
@@ -1477,6 +1611,8 @@ public void addTimeToGrid(Object timeIncrement)
                  for (int j = startTimeIndex; j <= endTimeIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 2, j);
                 }
             }
@@ -1485,14 +1621,19 @@ public void addTimeToGrid(Object timeIncrement)
                  for (int j = startTimeIndex; j <= endTimeIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 3, j);
                 }
             }
             if (myDateDay.equals(threeFromTodayDay)) 
            {
-               Label  locLbl = new Label(locStr);
+               
                  for (int j = startTimeIndex; j <= endTimeIndex; j++)
                 {
+                    Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 4, j);
                 }
             }
@@ -1501,6 +1642,8 @@ public void addTimeToGrid(Object timeIncrement)
                  for (int j = startTimeIndex; j <= endTimeIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 5, j);
                 }
             }
@@ -1518,6 +1661,8 @@ public void addTimeToGrid(Object timeIncrement)
                 for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 1, j);
                 }
             }
@@ -1526,6 +1671,8 @@ public void addTimeToGrid(Object timeIncrement)
                 for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 2, j);                }
             }
            if (myDateDay.equals(twoFromTodayDay)) 
@@ -1533,6 +1680,8 @@ public void addTimeToGrid(Object timeIncrement)
                 for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 3, j);
                 }
             }
@@ -1541,6 +1690,8 @@ public void addTimeToGrid(Object timeIncrement)
                 for (int j = startTimeFuzzyIndex; j <= endTimeFuzzyIndex; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 4, j);
                 }
             }
@@ -1549,6 +1700,8 @@ public void addTimeToGrid(Object timeIncrement)
                 for (int j = 0; j < count; j++)
                 {
                     Label  locLbl = new Label(locStr);
+                    locLbl.fontProperty().bind(fontTracking);
+                    locLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
                     grid.add(locLbl, 5, j);
                 }
             }
@@ -1584,6 +1737,7 @@ public void addTimeToGrid(Object timeIncrement)
         myButton1.setAlignment(Pos.CENTER);
         myButton1.setText(timeIntervals[i]);
         myButton1.fontProperty().bind(fontTracking);
+        myButton1.textFillProperty().bind(userManagerBttn.textFillProperty());
         grid.addColumn(0, myButton1);
         }
      grid.setGridLinesVisible(true);      
