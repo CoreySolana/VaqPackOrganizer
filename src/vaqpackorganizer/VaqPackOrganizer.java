@@ -270,8 +270,15 @@ public class VaqPackOrganizer extends Application {
             String newUserSql = "INSERT INTO `test`.`students` (`userName`, `passWord`, `firstName`, `middleName`, `lastName`, `phoneNumber`, `emailAddress`, `privLevel`) VALUES ('" + userName + "', '"+ passWord + "', '" + firstName + "', '" + middleName + "', '" + lastName + "', '" + emailAddress + "', '" + phoneNumber + "', '0');";
             //Pass SQL string to update records function
             updateRecords(newUserSql);
+            
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information Dialog");
+            alert.setHeaderText(null);
+            alert.setContentText("Your account has been created! Please login.");
+            alert.showAndWait();
+            
             newUStage.close();
-            primaryStage.show();
+            
             });
         });
 //-----------------------------END OF LOGIN PAGE------------------------------------------------------------------
@@ -1306,7 +1313,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                 this.setOnMouseClicked(a -> {
                                         Stage apptStage = new Stage();
                                         BorderPane myBorderPane = new BorderPane();
-                                        Scene apptScene = new Scene(myBorderPane,500,500);
+                                        Scene apptScene = new Scene(myBorderPane,800,500);
                                         TimeTicks timeTicks = new TimeTicks(30);
                                         timeTicks.generateTicks();
                                         String[] timeIntervals= timeTicks.getTimeTicksStrings();
