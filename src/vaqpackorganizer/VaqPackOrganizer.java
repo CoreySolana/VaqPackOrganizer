@@ -40,6 +40,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SelectionMode;
@@ -87,17 +88,29 @@ public class VaqPackOrganizer extends Application {
     public ArrayList<Student> students = new ArrayList<Student>();
     public ArrayList<Course> courses = new ArrayList<Course>();
     public ArrayList<Appointment> myAppointments = new ArrayList<Appointment>();
-    Image imageDecline = new Image(getClass().getResourceAsStream("decline-button.png"));
-    Image imageStar = new Image(getClass().getResourceAsStream("iconStarGold.png"));
-    Image weekImg = new Image(getClass().getResourceAsStream("calendar_view_week.png"));
+    Image adminImg = new Image(getClass().getResourceAsStream("admin.png"));
+    Image imageStar = new Image(getClass().getResourceAsStream("Star.png"));
+    Image weekImg = new Image(getClass().getResourceAsStream("Weekly.png"));
+    Image monthlyImg = new Image(getClass().getResourceAsStream("monthly.png"));
+    Image logoImg = new Image(getClass().getResourceAsStream("Logo.png"));
+    Image infoImg = new Image(getClass().getResourceAsStream("info.png"));
+    
+    
+    ImageView adminView = new ImageView(adminImg);
+    
     ImageView starView = new ImageView(imageStar);
-    ImageView weekImgView = new ImageView();
+    ImageView weeklyImgView = new ImageView(weekImg);
+    ImageView monthlyImgView = new ImageView(monthlyImg);
+    ImageView logoView = new ImageView(logoImg);
+    ImageView infoView = new ImageView(infoImg);
+    
+    
     Connection myConnection = null;
     Statement myStat = null; 
     ResultSet myRes = null;
     Button weeklyScheduleBttn ;
     Button monthlyScheduleBttn;
-    Button schoolInfoBttn;
+    Button schoolInfoBttn = new Button("School Info");
     Button newCourseBttn = new Button("New Course");
     ToggleButton userManagerBttn;
     Button regBttn = new Button("Reg for Course");
@@ -143,10 +156,12 @@ public class VaqPackOrganizer extends Application {
         loginGridPane.add(loginBtn, 2, 1);
         loginGridPane.add(newUBtn, 1, 3);
         loginGridPane.add(messageLbl, 1, 2);
-        Reflection reflect = new Reflection ();
-        Text loginTxt = new Text("VaqPaq Login");
-        loginTxt.setFont(Font.font("Courier New", FontWeight.BOLD, 28));
-        loginHbox.getChildren().add(loginTxt);
+        logoView.setFitHeight(200);
+        
+        logoView.setFitWidth(300);
+        
+        loginHbox.getChildren().add(logoView);
+        loginHbox.setAlignment(Pos.TOP_LEFT);
         loginBorderPane.setTop(loginHbox);
         loginBorderPane.setCenter(loginGridPane);
         //On loginBtn press
@@ -278,21 +293,29 @@ public class VaqPackOrganizer extends Application {
         fontTracking = new SimpleObjectProperty<Font>(Font.font(fontPicker.getValue().toString(),8));
     
         grid = new GridPane();
-        weekImgView.setImage(weekImg);
-        weekImgView.setFitHeight(100);
-        weekImgView.setFitWidth(100);
-        weekImgView.setPreserveRatio(true);
-        weekImgView.smoothProperty();
+        
         
         //Create togglebuttons
-        userManagerBttn = new ToggleButton("Course Management", new ImageView(imageDecline));
+        userManagerBttn = new ToggleButton("Course Management", adminView);
+        adminView.setFitHeight(60);
+        adminView.setFitWidth(60);
+        
+        weeklyImgView.setFitHeight(60);
+        weeklyImgView.setFitWidth(60);
+        
+        monthlyImgView.setFitHeight(60);
+        monthlyImgView.setFitWidth(60);
+        
+        infoView.setFitHeight(60);
+        infoView.setFitWidth(60);
+        
         userManagerBttn.setTextFill(textPicker.getValue());
         userManagerBttn.setContentDisplay(ContentDisplay.TOP);
-        ToggleButton weeklyScheduleBttn = new ToggleButton("Weekly Schedule", new ImageView(imageDecline));
+        ToggleButton weeklyScheduleBttn = new ToggleButton("Weekly Schedule", weeklyImgView);
         weeklyScheduleBttn.setContentDisplay(ContentDisplay.TOP);
-        ToggleButton monthlyScheduleBttn = new ToggleButton("Monthly Schedule",new ImageView(imageDecline));
+        ToggleButton monthlyScheduleBttn = new ToggleButton("Monthly Schedule",monthlyImgView);
         monthlyScheduleBttn.setContentDisplay(ContentDisplay.TOP);
-        ToggleButton schoolInfoBttn = new ToggleButton("School Information",new ImageView(imageDecline));
+        ToggleButton schoolInfoBttn = new ToggleButton("School Information",infoView);
         schoolInfoBttn.setContentDisplay(ContentDisplay.TOP);
         Label bgLbl = new Label("BG Color");
         
@@ -301,7 +324,6 @@ public class VaqPackOrganizer extends Application {
         bgLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         textColorLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
         fontLbl.textFillProperty().bind(userManagerBttn.textFillProperty());
-        
         VBox themes = new VBox(10);
         themes.getChildren().addAll(bgLbl,bgPicker,textColorLbl,textPicker,fontLbl,fontPicker);
         
@@ -319,9 +341,7 @@ public class VaqPackOrganizer extends Application {
                 userManagerBttn.setTextFill(colorPicker);
             });
         
-        
-        
-        // Create toggle group and add toggle buttons to group
+// Create toggle group and add toggle buttons to group
         ToggleGroup toolBarGroup = new ToggleGroup();   
         weeklyScheduleBttn.setToggleGroup(toolBarGroup);
         monthlyScheduleBttn.setToggleGroup(toolBarGroup);
@@ -375,13 +395,12 @@ public class VaqPackOrganizer extends Application {
         toolBar.getItems().get(6).setScaleX(1);
         toolBar.getItems().get(6).setScaleY(1);
         });
-        
         }
     //Bindings
         weeklyScheduleBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
         schoolInfoBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
         monthlyScheduleBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
-        
+        regBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
         //Binding the toolbar size to the border pane
         toolBar.setMinSize(0, 0);        
         toolBar.prefHeightProperty().bind(borderPane.heightProperty().divide(6));
@@ -595,10 +614,148 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                       }
                 });
             });
+        regBttn.fontProperty().bind(fontTracking);
+        newCourseBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        newCourseBttn.fontProperty().bind(fontTracking);
+        myCoursesBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        myCoursesBttn.fontProperty().bind(fontTracking);
+        modifyCourseBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        modifyCourseBttn.fontProperty().bind(fontTracking);
+        unregCourseBttn.textFillProperty().bind(userManagerBttn.textFillProperty());
+        unregCourseBttn.fontProperty().bind(fontTracking);
+         
         
- 
+    schoolInfoBttn.setOnAction(ax -> {
+        borderPane.setCenter(null);
+        borderPane.setRight(null);
+        borderPane.setBottom(null);
+        
+        String sql = "SELECT * FROM test.information;";
+        String[] info = new String[9]; 
+                try 
+                {
+                    info = readInfo(sql);
+                } catch (SQLException ex) 
+                {
+                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+               
+        Label department = new Label("Department Information");
+        department.fontProperty().bind(fontTracking);
+        department.textFillProperty().bind(userManagerBttn.textFillProperty());
+        department.setUnderline(true);
+        Label departmentInfo = new Label();
+        departmentInfo.setText(info[0]);
+        TextField departmentTxt = new TextField();
+        departmentTxt.setText(info[0]);
+        
+        Label police = new Label("Police Information");
+        police.setUnderline(true);
+        police.textFillProperty().bind(userManagerBttn.textFillProperty());
+        police.fontProperty().bind(fontTracking);
+        Label policeInfo = new Label();
+        policeInfo.setText(info[1]);
+        TextField policeTxt = new TextField();
+        policeTxt.setText(info[1]);
+        
+        Label library = new Label("Library Information");
+        library.fontProperty().bind(fontTracking);
+        library.textFillProperty().bind(userManagerBttn.textFillProperty());
+        library.setUnderline(true);
+        Label libraryInfo = new Label();
+        libraryInfo.setText(info[2]);
+        TextField libraryTxt = new TextField();
+        libraryTxt.setText(info[2]);
+        
+        Label cafeteria = new Label("Cafeteria Information");
+        cafeteria.fontProperty().bind(fontTracking);
+        cafeteria.textFillProperty().bind(userManagerBttn.textFillProperty());
+        cafeteria.setUnderline(true);
+        Label cafeteriaInfo = new Label();
+        cafeteriaInfo.setText(info[3]);
+        TextField cafeteriaTxt = new TextField();
+        cafeteriaTxt.setText(info[3]);
+        
+        Label prof = new Label("Professor Information");
+        prof.textFillProperty().bind(userManagerBttn.textFillProperty());
+        prof.fontProperty().bind(fontTracking);
+        prof.setUnderline(true);
+        Label profInfo = new Label();
+        profInfo.setText(info[4]);
+        TextArea profTxt = new TextArea();
+        profTxt.setText(info[4]);
+        
+        Label bookstore = new Label("Bookstore Information");
+        bookstore.textFillProperty().bind(userManagerBttn.textFillProperty());
+        bookstore.fontProperty().bind(fontTracking);
+        bookstore.setUnderline(true);
+        Label bookstoreInfo = new Label();
+        bookstoreInfo.setText(info[5]);
+        TextField bookstoreTxt = new TextField();
+        bookstoreTxt.setText(info[5]);
+        
+        Label gym = new Label("Gym Information");
+        gym.textFillProperty().bind(userManagerBttn.textFillProperty());
+        gym.setUnderline(true);
+        gym.fontProperty().bind(fontTracking);
+        Label gymInfo = new Label();
+        gymInfo.setText(info[6]);
+        TextField gymTxt = new TextField();
+        gymTxt.setText(info[6]);
+        Label map = new Label("School Map");
+        map.setUnderline(true);
+        
+        VBox myBox = new VBox(2);
+        
+        Hyperlink mapLink = new Hyperlink("http://www.utrgv.edu/_files/documents/admissions/visit/utrgv-brownsville-map.pdf");
+        mapLink.setOnAction(at -> {
+        
+        getHostServices().showDocument(mapLink.getText());
+        
+        });
         
         
+        Button modifyInfoBttn = new Button("Modify Info.");
+        borderPane.setRight(modifyInfoBttn);
+        myBox.getChildren().addAll(department,departmentInfo,police,policeInfo,library,libraryInfo,cafeteria,cafeteriaInfo,prof,profInfo,bookstore,bookstoreInfo,gym,gymInfo,map,mapLink);
+       
+        Button updateBttn = new Button("Save Changes");
+        
+        modifyInfoBttn.setOnAction(au -> {
+        
+        myBox.getChildren().removeAll(department,departmentInfo,police,policeInfo,library,libraryInfo,cafeteria,cafeteriaInfo,prof,profInfo,bookstore,bookstoreInfo,gym,gymInfo);
+        myBox.getChildren().addAll(department,departmentInfo,departmentTxt,police,policeInfo,policeTxt,library,libraryInfo,libraryTxt,cafeteria,cafeteriaInfo,cafeteriaTxt,prof,profInfo,profTxt,bookstore,bookstoreInfo,bookstoreTxt,gym,gymInfo,gymTxt);
+        borderPane.setBottom(updateBttn);
+        
+            updateBttn.setOnAction(ai -> {
+       
+                Alert alert = new Alert(AlertType.CONFIRMATION);
+                alert.setTitle("Confirmation Dialog");
+                alert.setHeaderText("Update School Information");
+                alert.setContentText("Do you want to save your changes?");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                        if (result.get() == ButtonType.OK){
+                            
+                            String update = "UPDATE `test`.`information` SET `department`='"+ departmentTxt.getText()+ "', `police`='"+ policeTxt.getText()+ "', `library`='"+ libraryTxt.getText()+ "', `cafeteria`='"+ cafeteriaTxt.getText()+ "', `professors`='"+ profTxt.getText()+ "', `bookstore`='"+ bookstoreTxt.getText()+ "', `gym`='"+ gymTxt.getText()+ "' WHERE `informationId`='1';";
+                            updateRecords(update);
+                            Alert alert2 = new Alert(AlertType.INFORMATION);
+                            alert2.setTitle("Information Dialog");
+                            alert2.setHeaderText(null);
+                            alert2.setContentText("School Information has been updated!");
+                            alert2.showAndWait();
+                            
+                        } else 
+                        {
+                            
+                        }
+            });
+        
+        });
+       
+        
+        borderPane.setCenter(myBox);
+            });
         
         //User Management Button Listener
         userManagerBttn.setOnAction(aq -> {
@@ -669,7 +826,55 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                     {
                         Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
                     }
-            }
+                  
+                    
+                    String sql2 = ("SELECT * FROM test.registeredstudents WHERE studentId =" + loggedInStudent.getStudentId() + ";");
+                    ObservableList<Registered> myRegCourses2 = FXCollections.observableArrayList();
+                    ObservableList<Course> myCourses2 = FXCollections.observableArrayList();
+                    TableView<Course> myCourseView2 = new TableView<Course>();
+                    borderPane.setCenter(myCourseView2);
+            try {
+           myRegCourses2 = readRegCourses(sql2);
+        } catch (SQLException ex) {
+            Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         for (int i = 0; i < myRegCourses2.size(); i++) {
+             int courseId2 = myRegCourses2.get(i).getCourseId();
+                String sql3 = ("SELECT * FROM `test`.`courses` WHERE courseId =" + courseId2 + ";");
+                ObservableList<Course> holder= FXCollections.observableArrayList();
+                    try {
+                        holder = readCourses(sql3);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                myCourses2 = FXCollections.concat(myCourses2,holder);
+             }
+            myCourseView2.setItems(myCourses2);
+            TableColumn<Course,Integer> courseId2= new TableColumn<>("courseId");
+            courseId2.setCellValueFactory(new PropertyValueFactory<Course,Integer>("courseId"));
+            TableColumn<Course,String> courseName2 = new TableColumn<>("courseName");
+	    courseName2.setCellValueFactory(new PropertyValueFactory<Course,String>("courseName"));
+            TableColumn<Course,String> classRoom2 = new TableColumn<>("classRoom");
+	    classRoom2.setCellValueFactory(new PropertyValueFactory<Course,String>("classRoom"));
+            TableColumn<Course,String> startDate2 = new TableColumn<>("startDate");
+            startDate2.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+            TableColumn<Course,String> startTime2 = new TableColumn<>("startTime");
+            startTime2.setCellValueFactory(new PropertyValueFactory<>("startTime"));
+            TableColumn<Course,String> endTime2 = new TableColumn<>("endTime");
+            endTime2.setCellValueFactory(new PropertyValueFactory<>("endTime"));
+            TableColumn<Course,String> courseDesc2 = new TableColumn<>("courseDesc");
+            courseDesc2.setCellValueFactory(new PropertyValueFactory<>("courseDesc"));
+            TableColumn<Course,Integer> profId2= new TableColumn<>("profId");
+            profId2.setCellValueFactory(new PropertyValueFactory<Course,Integer>("profId"));
+            myCourseView2.getColumns().setAll(courseId2,courseName2,classRoom2,startDate2,startTime2,endTime2,courseDesc2,profId2);
+                    
+                Alert alert2 = new Alert(AlertType.INFORMATION);
+                alert2.setTitle("Information Dialog");
+                alert2.setHeaderText(null);
+                alert2.setContentText("You have been unregistered from " + thisCourse.getCourseName() + ".");
+                alert2.showAndWait();
+                
+                }
             else
             {
                 // ... user chose CANCEL or closed the dialog
@@ -734,7 +939,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             myFlowPane.getChildren().addAll(courseSplash,courseNameLbl,courseNameTxt,courseClassLbl,courseClassTxt,courseStartDateLbl,startDatePicker,courseStartTimeLbl,apptStartTimeCombo,courseEndTimeLbl,apptEndTimeCombo,courseDescriptionLbl,courseDescriptionTxt,courseSubmit);
             myPane.setCenter(myFlowPane);
              //Listner for Course Submit 
-                courseSubmit.setOnAction(ap -> {
+            courseSubmit.setOnAction(ap -> {
                 String courseName = courseNameTxt.getText();
                 String courseLocation = courseClassTxt.getText();
                 String startDate =  startDatePicker.getValue().toString();
@@ -751,7 +956,9 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                             }
                      String mod2 = ("SELECT * FROM test.courses;");
                      TableView<Course> courseView2 = viewCourses(mod);
+                     modCourseStage.close();
                      borderPane.setCenter(courseView2);
+                     
                         });
                modCourseStage.show();
             });
@@ -820,11 +1027,28 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             Course myCourse = (Course)courseView.getSelectionModel().getSelectedItem();
             regConfirmBttn.setOnAction(ax -> 
                 {
-                registerCourse(myCourse);
+                    Alert alert = new Alert(AlertType.CONFIRMATION);
+                    alert.setTitle("Confirmation Dialog");
+                    alert.setHeaderText("Confirm Course");
+                    alert.setContentText("Are you sure you want to register for: " + myCourse.getCourseName() + " ?");
+
+                    Optional<ButtonType> result = alert.showAndWait();
+                        if (result.get() == ButtonType.OK)
+                        {
+                            registerCourse(myCourse);
+                            Alert alert2 = new Alert(AlertType.INFORMATION);
+                                alert2.setTitle("Information Dialog");
+                                alert2.setHeaderText("Succesful Registration");
+                                alert2.setContentText("You have been registered in: " + myCourse.getCourseName());
+
+                                alert2.showAndWait();
+                        } else 
+                        {
+                        // ... user chose CANCEL or closed the dialog
+                        }
                 });
-            
-          });
-        regCancelBttn.setOnAction(ae -> 
+            });
+    regCancelBttn.setOnAction(ae -> 
                 {
                 borderPane.setCenter(null);
                 });
@@ -872,24 +1096,52 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
         borderPane.setCenter(myFlowPane);
        //Listner for Course Submit 
         courseSubmit.setOnAction(ag -> {
-        String courseName = courseNameTxt.getText();
-        String courseLocation = courseClassTxt.getText();
-        String startDate =  startDatePicker.getValue().toString();
-        String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
-        String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
-        String courseDescription = courseDescriptionTxt.getText();
-        //Need to grab profId from a table
-        int profId = 2;
-        String mySql = "INSERT INTO `test`.`courses` (`courseName`, `classRoom`, `startDate`, `startTime`, `endTime`, `courseDesc`, `profId`) VALUES ('" + courseName + "', '" + courseLocation + "', '" + startDate + "', '" + courseStartTime + "', '" + courseEndTime + "', '" + courseDescription + "', '2');";
-        
-             try {  
-                myStat.executeUpdate(mySql);
-                    } catch (SQLException ex) {
-                    Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                });
-            });
+           String courseName = courseNameTxt.getText();
+            Alert alert = new Alert(AlertType.CONFIRMATION);
+                alert.setTitle("Confirmation Dialog");
+                alert.setHeaderText("Course creation confirmation");
+                alert.setContentText("Are you sure you wish to add Course: " + courseName + "?");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK)
+                {
+                        
+                        String courseLocation = courseClassTxt.getText();
+                        String startDate =  startDatePicker.getValue().toString();
+                        String courseStartTime = apptStartTimeCombo.getSelectionModel().getSelectedItem().toString();
+                        String courseEndTime = apptEndTimeCombo.getSelectionModel().getSelectedItem().toString();
+                        String courseDescription = courseDescriptionTxt.getText();
+                        //Need to grab profId from a table
+                        int profId = 2;
+                        String mySql = "INSERT INTO `test`.`courses` (`courseName`, `classRoom`, `startDate`, `startTime`, `endTime`, `courseDesc`, `profId`) VALUES ('" + courseName + "', '" + courseLocation + "', '" + startDate + "', '" + courseStartTime + "', '" + courseEndTime + "', '" + courseDescription + "', '2');";
+
+                             try 
+                             {  
+                                myStat.executeUpdate(mySql);
+                             }
+                             catch
+                            (SQLException ex)
+                             {
+                               Logger.getLogger(VaqPackOrganizer.class.getName()).log(Level.SEVERE, null, ex);
+                             }
+                        Alert alert2 = new Alert(AlertType.INFORMATION);
+                        alert2.setTitle("Information Dialog");
+                        alert2.setHeaderText("Course Created");
+                        alert2.setContentText("Course: " + courseName + " has been added to the catalog.");
+
+                        alert2.showAndWait();
+                } 
+                
+                else {
+                    // ... user chose CANCEL or closed the dialog
+                }
+            
+            
+            
+            
         });
+    });
+});
  //-------------------------------------------------------------------END NEW COURSE----------------------------------------------------------------------------
  //-------------------------------------------------------MONTH VIEW-----------------------------------------------------------------------------------------
         monthlyScheduleBttn.setOnAction((ae) -> {
@@ -1101,7 +1353,7 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                         Button cancelBttn2 = new Button ("Cancel");
                                         Button updateAppointmentBttn = new Button("Update");
                                         VBox myVB2 = new VBox(10);
-                                        Button emailBtn = new Button("Send Email");
+                                        Button emailBtn = new Button("Email Appts.");
                                         myVB2.getChildren().addAll(startTime2,apptStartTimeCombo2,endTime2,apptEndTimeCombo2,apptLocLbl2,apptLocTxtFld2,apptReasonLbl2,apptReasonTxtFld2,emailBtn,updateAppointmentBttn,cancelBttn2);    
                                         
                                         //Email Button
@@ -1250,15 +1502,17 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
                                     if(date.equals(date1))
                                        { 
                                         ImageView myView = new ImageView(imageStar);
+                                        myView.setFitHeight(30);
+                                        myView.setFitWidth(30);
                                         HBox myBox = new HBox(2);
-                                        Label myLbl = new Label("asj");
+                                        
                                         myBox.setAlignment(Pos.TOP_LEFT);
-                                        myBox.getChildren().addAll(myView,myLbl);
+                                        myBox.getChildren().addAll(myView);
                                         setGraphic(myBox);
                                         //this.setGraphic(myView);
                                         setTooltip(new Tooltip(
                                          "You have appointments today"));
-                                        setStyle("-fx-background-color: #ac521a;");
+                                        //setStyle("-fx-background-color: #ac521a;");
                                        }
                                  }
                                 this.setContentDisplay(ContentDisplay.TOP);
@@ -1377,6 +1631,38 @@ group.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
             myTableView.getColumns().setAll(studentId,userName,passWord,firstName,middleName,lastName,emailAddress,phoneNumber);
             return myTableView;
  }
+ 
+ public String[] readInfo(String m) throws SQLException
+ {
+         String sql = "SELECT * FROM `test`.`information`";
+         myRes = myStat.executeQuery(m);
+         String[] infoArray = new String[9];
+         
+        while(myRes.next())
+        {
+	    String department = myRes.getString("department");
+            infoArray[0] = department;
+	    String police = myRes.getString("police");
+            infoArray[1] = police;
+            String library = myRes.getString("library");
+            infoArray[2] = library;
+            String cafeteria = myRes.getString("cafeteria");
+            infoArray[3]= cafeteria;
+            String professors = myRes.getString("professors");
+            infoArray[4] = professors;
+            String bookstore = myRes.getString("bookstore"); 
+            infoArray[5] = bookstore;
+            String gym = myRes.getString("gym");
+            infoArray[6] = gym;
+            
+            for (int i = 0; i < infoArray.length; i++) {
+                System.out.println(infoArray[i]);
+            }
+        }
+        return infoArray;
+ }
+ 
+ 
  public ObservableList readStudents(String m) throws SQLException
     {
         String sql = "SELECT * FROM `test`.`students`";
